@@ -5,6 +5,8 @@ A high-performance, serverless, Single Page Application (SPA) for exploring worl
 ## 🚀 Live Demo
 **[https://avirads.github.io/wostr-terminal/](https://avirads.github.io/wostr-terminal/)**
 
+![Wostr Terminal Demo](./demo.webp)
+
 ## ✨ Features
 - **Massive Database**: Search over 1.2 million IP-to-ASN records locally in your browser.
 - **Natural Language Search**: Queries like "Google in US", "Netflix in JP", or "Hetzner in Germany".
