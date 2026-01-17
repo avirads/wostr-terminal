@@ -26,7 +26,6 @@ async function initDatabase() {
     document.getElementById('status').innerHTML = '<p>Failed to load database. Please refresh the page.</p>';
   }
 }
-}
 
 function getCurrentTheme() {
   const themes = ['dark', 'light', 'nord', 'dracula', 'github', 'ocean'];
