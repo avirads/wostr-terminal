@@ -9,7 +9,7 @@ let currentCountry = '';
 let currentCountryCode = '';
 let isSearchMode = false;
 
-const TURSO_DB_URL = 'https://ip-to-asndb-avirads.aws-ap-south-1.turso.io';
+const TURSO_DB_URL = 'libsql://ip-to-asndb-avirads.aws-ap-south-1.turso.io';
 
 async function initDatabase() {
   try {
