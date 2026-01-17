@@ -9,15 +9,15 @@ let currentCountry = '';
 let currentCountryCode = '';
 let isSearchMode = false;
 
-const TURSO_DB_URL = 'https://ip-to-asndb.turso.io';
+const TURSO_DB_URL = 'libsql://ip-to-asndb.turso.io';
 
 async function initDatabase() {
   try {
     const { createClient } = await import('https://cdn.jsdelivr.net/npm/@libsql/client@0.6.0/+esm');
     db = createClient({ 
-      url: TURSO_DB_URL,
-      embedded: true
+      url: TURSO_DB_URL
     });
+    await db.sync();
     document.getElementById('searchBtn').disabled = false;
     showApp();
     setTimeout(initMap, 50);
@@ -25,6 +25,7 @@ async function initDatabase() {
     console.error('Failed to load database:', error);
     document.getElementById('status').innerHTML = '<p>Failed to load database. Please refresh the page.</p>';
   }
+}
 }
 }
 
