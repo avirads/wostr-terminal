@@ -9,13 +9,18 @@ let currentCountry = '';
 let currentCountryCode = '';
 let isSearchMode = false;
 
-const TURSO_DB_URL = 'libsql://ip-to-asndb.turso.io';
+const TURSO_DB_URL = 'https://ip-to-asndb.turso.io';
+const TURSO_REPLICA_NAME = 'wostr-terminal-db';
 
 async function initDatabase() {
   try {
     const { createClient } = await import('https://cdn.jsdelivr.net/npm/@libsql/client@0.6.0/+esm');
     db = createClient({ 
-      url: TURSO_DB_URL
+      url: TURSO_DB_URL,
+      syncUrl: TURSO_DB_URL,
+      embedded: {
+        localDbName: TURSO_REPLICA_NAME
+      }
     });
     await db.sync();
     document.getElementById('searchBtn').disabled = false;
