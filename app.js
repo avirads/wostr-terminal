@@ -9,6 +9,8 @@ let currentCountry = '';
 let currentCountryCode = '';
 let isSearchMode = false;
 
+const TURSO_DB_URL = 'libsql://ip-to-asndb-avirads.aws-ap-south-1.turso.io';
+
 const countryCodeMap = {
   'Afghanistan': 'AF', 'Albania': 'AL', 'Algeria': 'DZ', 'Andorra': 'AD', 'Angola': 'AO',
   'Antigua and Barbuda': 'AG', 'Argentina': 'AR', 'Armenia': 'AM', 'Australia': 'AU', 'Austria': 'AT',
@@ -100,14 +102,8 @@ const countryCoords = {
 
 async function initDatabase() {
   try {
-    const SQL = await initSqlJs({
-      locateFile: file => file
-    });
-
-    const response = await fetch('ip-to-asn.db');
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = new Uint8Array(arrayBuffer);
-    db = new SQL.Database(buffer);
+    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@libsql/client@0.6.0/+esm');
+    db = createClient({ url: TURSO_DB_URL });
     document.getElementById('searchBtn').disabled = false;
     showApp();
     setTimeout(initMap, 50);
@@ -196,18 +192,16 @@ function initMap() {
   loadCountryCounts();
 }
 
-function loadCountryCounts() {
+async function loadCountryCounts() {
   if (!db) return;
 
-  const result = db.exec("SELECT country_code, COUNT(*) as count FROM ip_to_asn GROUP BY country_code");
+  const result = await db.execute("SELECT country_code, COUNT(*) as count FROM ip_to_asn GROUP BY country_code");
 
-  if (result.length > 0) {
-    result[0].values.forEach(row => {
-      countryCounts[row[0]] = row[1];
-    });
+  result.rows.forEach(row => {
+    countryCounts[row.country_code] = row.count;
+  });
 
-    displayCountryMarkers();
-  }
+  displayCountryMarkers();
 }
 
 function getThemeColors(theme) {
@@ -319,7 +313,7 @@ function showApp() {
   document.querySelector('.container').classList.add('active');
 }
 
-function search(query) {
+async function search(query) {
   if (!db || !query.trim()) return;
 
   isSearchMode = true;
@@ -330,32 +324,32 @@ function search(query) {
   document.getElementById('results').classList.remove('active');
   document.getElementById('status').innerHTML = '';
 
-  setTimeout(() => {
+  setTimeout(async () => {
     const searchType = detectSearchType(query);
     let results = [];
 
     switch (searchType) {
       case 'asn':
-        results = searchASN(query);
+        results = await searchASN(query);
         break;
       case 'country':
-        results = searchCountry(query);
+        results = await searchCountry(query);
         break;
       case 'combined':
-        results = searchCombined(query);
+        results = await searchCombined(query);
         break;
       case 'domain':
-        results = searchDomain(query);
+        results = await searchDomain(query);
         break;
       case 'network':
-        results = searchNetwork(query);
+        results = await searchNetwork(query);
         break;
       default:
-        results = searchAll(query);
+        results = await searchAll(query);
     }
 
     currentResults = results;
-    displayResults(results);
+    await displayResults(results);
     updateMapForSearch(results);
 
     document.getElementById('loading').classList.remove('active');
@@ -399,69 +393,58 @@ function detectSearchType(query) {
   return 'all';
 }
 
-function searchAll(keyword) {
+async function searchAll(keyword) {
   const keywords = keyword.toLowerCase().split(' ').filter(k => k.length > 1);
   const placeholders = keywords.map(() => 'name LIKE ? OR org LIKE ? OR domain LIKE ?').join(' OR ');
   const params = keywords.flatMap(k => [`%${k}%`, `%${k}%`, `%${k}%`]);
 
-  let stmt = db.prepare(`SELECT DISTINCT network, asn, country_code, name, org, domain FROM ip_to_asn WHERE ${placeholders} LIMIT 200`);
-  stmt.bind(params);
+  const result = await db.execute({
+    sql: `SELECT DISTINCT network, asn, country_code, name, org, domain FROM ip_to_asn WHERE ${placeholders} LIMIT 200`,
+    args: params
+  });
 
-  const results = [];
-  while (stmt.step()) {
-    const row = stmt.getAsObject();
-    if (row.network && row.network.includes('/')) {
-      results.push(row);
-    }
-  }
-  stmt.free();
+  const results = result.rows
+    .filter(row => row.network && row.network.includes('/'))
+    .map(row => ({ network: row.network, asn: row.asn, country_code: row.country_code, name: row.name, org: row.org, domain: row.domain }));
 
   return shuffleArray(results);
 }
 
-function searchASN(query) {
+async function searchASN(query) {
   const asnNum = query.replace(/as/i, '').trim();
-  const stmt = db.prepare('SELECT DISTINCT network, asn, country_code, name, org, domain FROM ip_to_asn WHERE asn LIKE ? LIMIT 100');
-  stmt.bind([`%${asnNum}%`]);
+  const result = await db.execute({
+    sql: 'SELECT DISTINCT network, asn, country_code, name, org, domain FROM ip_to_asn WHERE asn LIKE ? LIMIT 100',
+    args: [`%${asnNum}%`]
+  });
 
-  const results = [];
-  while (stmt.step()) {
-    const row = stmt.getAsObject();
-    if (row.network && row.network.includes('/')) {
-      results.push(row);
-    }
-  }
-  stmt.free();
-
-  return results;
+  return result.rows
+    .filter(row => row.network && row.network.includes('/'))
+    .map(row => ({ network: row.network, asn: row.asn, country_code: row.country_code, name: row.name, org: row.org, domain: row.domain }));
 }
 
-function searchCountry(query) {
+async function searchCountry(query) {
   let countryCode = query.toUpperCase().trim();
 
   if (countryCodeMap[query]) {
     countryCode = countryCodeMap[query];
   }
 
-  const stmt = db.prepare('SELECT DISTINCT network, asn, country_code, name, org, domain FROM ip_to_asn WHERE country_code = ? LIMIT 200');
-  stmt.bind([countryCode]);
-
-  const results = [];
-  while (stmt.step()) {
-    const row = stmt.getAsObject();
-    if (row.network && row.network.includes('/')) {
-      results.push(row);
-    }
-  }
-  stmt.free();
+  const result = await db.execute({
+    sql: 'SELECT DISTINCT network, asn, country_code, name, org, domain FROM ip_to_asn WHERE country_code = ? LIMIT 200',
+    args: [countryCode]
+  });
 
   currentCountry = Object.entries(countryCodeMap).find(([name, code]) => code === countryCode)?.[0] || '';
   currentCountryCode = countryCode;
 
+  const results = result.rows
+    .filter(row => row.network && row.network.includes('/'))
+    .map(row => ({ network: row.network, asn: row.asn, country_code: row.country_code, name: row.name, org: row.org, domain: row.domain }));
+
   return shuffleArray(results);
 }
 
-function searchCombined(query) {
+async function searchCombined(query) {
   const match = query.match(/^(.+?)\s+(?:in|of)\s+(.+)$/i);
 
   if (!match) {
@@ -480,67 +463,51 @@ function searchCombined(query) {
   currentCountryCode = countryCode;
 
   if (countryCode.length !== 2 || !countryCoords[countryCode]) {
-    const stmt = db.prepare('SELECT DISTINCT network, asn, country_code, name, org, domain FROM ip_to_asn WHERE org LIKE ? AND country_code IN (SELECT country_code FROM ip_to_asn WHERE name LIKE ? OR org LIKE ? OR country_code LIKE ?) LIMIT 200');
-    stmt.bind([`%${org}%`, `%${countryPart}%`, `%${countryPart}%`, `%${countryPart}%`]);
+    const result = await db.execute({
+      sql: 'SELECT DISTINCT network, asn, country_code, name, org, domain FROM ip_to_asn WHERE org LIKE ? AND country_code IN (SELECT country_code FROM ip_to_asn WHERE name LIKE ? OR org LIKE ? OR country_code LIKE ?) LIMIT 200',
+      args: [`%${org}%`, `%${countryPart}%`, `%${countryPart}%`, `%${countryPart}%`]
+    });
 
-    const results = [];
-    while (stmt.step()) {
-      const row = stmt.getAsObject();
-      if (row.network && row.network.includes('/')) {
-        results.push(row);
-      }
-    }
-    stmt.free();
+    const results = result.rows
+      .filter(row => row.network && row.network.includes('/'))
+      .map(row => ({ network: row.network, asn: row.asn, country_code: row.country_code, name: row.name, org: row.org, domain: row.domain }));
 
     return shuffleArray(results);
   }
 
-  const stmt = db.prepare('SELECT DISTINCT network, asn, country_code, name, org, domain FROM ip_to_asn WHERE org LIKE ? AND country_code = ? LIMIT 200');
-  stmt.bind([`%${org}%`, countryCode]);
+  const result = await db.execute({
+    sql: 'SELECT DISTINCT network, asn, country_code, name, org, domain FROM ip_to_asn WHERE org LIKE ? AND country_code = ? LIMIT 200',
+    args: [`%${org}%`, countryCode]
+  });
 
-  const results = [];
-  while (stmt.step()) {
-    const row = stmt.getAsObject();
-    if (row.network && row.network.includes('/')) {
-      results.push(row);
-    }
-  }
-  stmt.free();
+  const results = result.rows
+    .filter(row => row.network && row.network.includes('/'))
+    .map(row => ({ network: row.network, asn: row.asn, country_code: row.country_code, name: row.name, org: row.org, domain: row.domain }));
 
   return shuffleArray(results);
 }
 
-function searchDomain(domain) {
-  const stmt = db.prepare('SELECT DISTINCT network, asn, country_code, name, org, domain FROM ip_to_asn WHERE domain LIKE ? LIMIT 100');
-  stmt.bind([`%${domain}%`]);
+async function searchDomain(domain) {
+  const result = await db.execute({
+    sql: 'SELECT DISTINCT network, asn, country_code, name, org, domain FROM ip_to_asn WHERE domain LIKE ? LIMIT 100',
+    args: [`%${domain}%`]
+  });
 
-  const results = [];
-  while (stmt.step()) {
-    const row = stmt.getAsObject();
-    if (row.network && row.network.includes('/')) {
-      results.push(row);
-    }
-  }
-  stmt.free();
-
-  return results;
+  return result.rows
+    .filter(row => row.network && row.network.includes('/'))
+    .map(row => ({ network: row.network, asn: row.asn, country_code: row.country_code, name: row.name, org: row.org, domain: row.domain }));
 }
 
-function searchNetwork(network) {
+async function searchNetwork(network) {
   const cleanNetwork = network.trim();
-  const stmt = db.prepare('SELECT DISTINCT network, asn, country_code, name, org, domain FROM ip_to_asn WHERE network = ? LIMIT 10');
-  stmt.bind([cleanNetwork]);
+  const result = await db.execute({
+    sql: 'SELECT DISTINCT network, asn, country_code, name, org, domain FROM ip_to_asn WHERE network = ? LIMIT 10',
+    args: [cleanNetwork]
+  });
 
-  const results = [];
-  while (stmt.step()) {
-    const row = stmt.getAsObject();
-    if (row.network && row.network.includes('/')) {
-      results.push(row);
-    }
-  }
-  stmt.free();
-
-  return results;
+  return result.rows
+    .filter(row => row.network && row.network.includes('/'))
+    .map(row => ({ network: row.network, asn: row.asn, country_code: row.country_code, name: row.name, org: row.org, domain: row.domain }));
 }
 
 function shuffleArray(array) {
@@ -551,7 +518,7 @@ function shuffleArray(array) {
   return array;
 }
 
-function displayResults(results) {
+async function displayResults(results) {
   const resultsList = document.getElementById('resultsList');
   const resultsCount = document.getElementById('resultsCount');
 
@@ -601,7 +568,7 @@ function displayResults(results) {
   html += createPagination(results.length);
 
   if (currentCountry && (currentCountryCode.length === 2)) {
-    const orgs = getUniqueOrganizations(currentCountryCode);
+    const orgs = await getUniqueOrganizations(currentCountryCode);
     if (orgs.length > 0) {
       html += `
         <div class="org-section">
@@ -618,20 +585,15 @@ function displayResults(results) {
   document.getElementById('results').classList.add('active');
 }
 
-function getUniqueOrganizations(countryCode) {
-  const stmt = db.prepare('SELECT DISTINCT org FROM ip_to_asn WHERE country_code = ? AND org IS NOT NULL AND org != "" ORDER BY org ASC');
-  stmt.bind([countryCode]);
+async function getUniqueOrganizations(countryCode) {
+  const result = await db.execute({
+    sql: 'SELECT DISTINCT org FROM ip_to_asn WHERE country_code = ? AND org IS NOT NULL AND org != "" ORDER BY org ASC',
+    args: [countryCode]
+  });
 
-  const orgs = [];
-  while (stmt.step()) {
-    const row = stmt.getAsObject();
-    if (row.org && row.org.trim()) {
-      orgs.push(row.org.trim());
-    }
-  }
-  stmt.free();
-
-  return orgs;
+  return result.rows
+    .map(row => row.org)
+    .filter(org => org && org.trim());
 }
 
 function copyOrg(org) {
