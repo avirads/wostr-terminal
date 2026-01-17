@@ -27,7 +27,6 @@ async function initDatabase() {
   }
 }
 }
-}
 
 function getCurrentTheme() {
   const themes = ['dark', 'light', 'nord', 'dracula', 'github', 'ocean'];
