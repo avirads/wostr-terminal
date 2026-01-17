@@ -17,7 +17,6 @@ async function initDatabase() {
     db = createClient({ 
       url: TURSO_DB_URL
     });
-    await db.sync();
     document.getElementById('searchBtn').disabled = false;
     showApp();
     setTimeout(initMap, 50);
