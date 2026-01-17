@@ -91,3 +91,29 @@ When "Insufficient balance" message is shown, also link to top places where KAS 
 ### 21. Revert to KAS Balance Authentication
 Change authentication logic back to check for positive KAS balance instead of KRC20 LIVE tokens. Update error messages and modal text accordingly.
 
+### 22. Database Optimization: 77zip Compression
+- Compress the `ip-to-asn-20260116.sqlite` database into a `.7z` archive using the highest compression level.
+- Integrated `libarchive.js` to decompress the `.7z` file in the browser using WebWorkers and WASM.
+- This reduced initial download size by 75% (from 28MB to 7MB).
+
+### 23. IndexedDB Caching (Persistent Storage)
+- Implemented a caching layer using `IndexedDB`.
+- After initial download and conversion, the final SQLite database buffer is saved to local storage.
+- Modified `initDatabase` to check for this cache first. Subsequent visits load the database instantly without any network request.
+- Added versioned cache keys (e.g., `ip-to-asn-20260116-v3`) to force refresh when parsing logic changes.
+
+### 24. Professional CSV to SQL Converter & Parser
+- Switched to raw CSV data extraction to further reduce footprint.
+- Built a custom, character-by-character CSV parser in `app.js` to handle complex fields.
+- Correctly handles fields with internal commas, double quotes, and escaped characters.
+- Fixed "truncation" issues where organization names were misparsed due to simple comma-splitting.
+
+### 25. UX Consistency: Initial Loading Indicator
+- Fixed "blank screen" issue: Header and search UI now appear immediately.
+- Added real-time progress updates during the extraction and conversion phase.
+- Re-enabled search button only after the database is 100% ready.
+
+### 26. Final Deployment & Migration
+- Cleaned up the codebase by removing legacy .csv files and unused developer backups.
+- Initialized `wostr-terminal` as a standalone GitHub repository.
+- Deployed to GitHub Pages at `https://avirads.github.io/wostr-terminal/`.
