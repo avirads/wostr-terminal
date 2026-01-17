@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="Worldwide Network Explorer - Search IP addresses, AS numbers, organizations, and domains">
+  <title>Worldwide Network Explorer</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="stylesheet" href="leaflet.css">
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-tertiary: #334155;
+      --text-primary: #e2e8f0;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent: #60a5fa;
+      --accent-hover: #3b82f6;
+      --accent-light: #2563eb;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --border: #334155;
+      --shadow: rgba(0, 0, 0, 0.3);
+    }
+
+    .theme-dark {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-tertiary: #334155;
+      --text-primary: #e2e8f0;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent: #60a5fa;
+      --accent-hover: #3b82f6;
+      --accent-light: #2563eb;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --border: #334155;
+      --shadow: rgba(0, 0, 0, 0.3);
+    }
+
+    .theme-light {
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #e2e8f0;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --accent: #2563eb;
+      --accent-hover: #3b82f6;
+      --accent-light: #60a5fa;
+      --success: #16a34a;
+      --warning: #d97706;
+      --error: #dc2626;
+      --border: #e2e8f0;
+      --shadow: rgba(0, 0, 0, 0.1);
+    }
+
+    .theme-nord {
+      --bg-primary: #2e3440;
+      --bg-secondary: #3b4252;
+      --bg-tertiary: #4c566a;
+      --text-primary: #eceff4;
+      --text-secondary: #d8dee9;
+      --text-muted: #88c0d0;
+      --accent: #88c0d0;
+      --accent-hover: #81a1c1;
+      --accent-light: #5e81ac;
+      --success: #a3be8c;
+      --warning: #ebcb8b;
+      --error: #bf616a;
+      --border: #4c566a;
+      --shadow: rgba(0, 0, 0, 0.3);
+    }
+
+    .theme-dracula {
+      --bg-primary: #282a36;
+      --bg-secondary: #44475a;
+      --bg-tertiary: #6272a4;
+      --text-primary: #f8f8f2;
+      --text-secondary: #bd93f9;
+      --text-muted: #6272a4;
+      --accent: #bd93f9;
+      --accent-hover: #caa8fc;
+      --accent-light: #ff79c6;
+      --success: #50fa7b;
+      --warning: #f1fa8c;
+      --error: #ff5555;
+      --border: #44475a;
+      --shadow: rgba(0, 0, 0, 0.3);
+    }
+
+    .theme-github {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --text-primary: #c9d1d9;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent: #58a6ff;
+      --accent-hover: #79c0ff;
+      --accent-light: #1f6feb;
+      --success: #3fb950;
+      --warning: #d29922;
+      --error: #f85149;
+      --border: #30363d;
+      --shadow: rgba(0, 0, 0, 0.3);
+    }
+
+    .theme-ocean {
+      --bg-primary: #0a192f;
+      --bg-secondary: #112240;
+      --bg-tertiary: #233554;
+      --text-primary: #ccd6f6;
+      --text-secondary: #8892b0;
+      --text-muted: #495670;
+      --accent: #64ffda;
+      --accent-hover: #4cd6b3;
+      --accent-light: #00bfa5;
+      --success: #64ffda;
+      --warning: #ffd700;
+      --error: #ff6b6b;
+      --border: #233554;
+      --shadow: rgba(0, 0, 0, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 12px;
+      font-size: 14px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      display: none;
+    }
+
+    .container.active {
+      display: block;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      max-width: 150px;
+      height: auto;
+      margin-bottom: 12px;
+      border-radius: 12px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+    }
+
+    .tagline {
+      color: var(--success);
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+    }
+
+    .theme-switcher {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    #themeSelect {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 0.85rem;
+      cursor: pointer;
+      outline: none;
+    }
+
+    #themeSelect:hover {
+      border-color: var(--accent);
+    }
+
+    #themeSelect:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+    }
+
+    .search-box {
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 4px 6px -1px var(--shadow);
+      margin-bottom: 20px;
+    }
+
+    .search-box label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+    }
+
+    .search-input-wrapper {
+      display: flex;
+      gap: 10px;
+    }
+
+    #query {
+      flex: 1;
+      padding: 12px 14px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      transition: border-color 0.2s;
+    }
+
+    #query:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    #searchBtn {
+      padding: 12px 20px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #searchBtn:hover {
+      background: var(--accent-hover);
+    }
+
+    #searchBtn:disabled {
+      background: var(--bg-tertiary);
+      cursor: not-allowed;
+    }
+
+    .examples {
+      margin-top: 16px;
+    }
+
+    .examples-title {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .examples-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 6px;
+    }
+
+    .example-tag {
+      display: inline-block;
+      padding: 5px 10px;
+      background: var(--bg-tertiary);
+      color: var(--accent);
+      border-radius: 20px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      border: 1px solid transparent;
+    }
+
+    .example-tag:hover {
+      background: var(--bg-secondary);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .example-section {
+      margin-top: 16px;
+    }
+
+    .example-section-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .example-section-title::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 14px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    .user-guide {
+      margin-top: 30px;
+      padding: 16px;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .user-guide h3 {
+      color: var(--accent);
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+
+    .guide-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .guide-card {
+      background: var(--bg-primary);
+      border-radius: 8px;
+      padding: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .guide-card h4 {
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .guide-card p {
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+
+    .guide-card code {
+      background: var(--bg-tertiary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+    }
+
+    .guide-examples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .guide-example {
+      padding: 3px 8px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--bg-tertiary);
+      border-radius: 12px;
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .guide-example:hover {
+      background: var(--bg-tertiary);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .result-network {
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-color: transparent;
+      transition: all 0.2s;
+    }
+
+    .result-network:hover {
+      text-decoration-color: var(--accent);
+    }
+
+    .download-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .download-modal.active {
+      display: flex;
+    }
+
+    .download-content {
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      max-width: 360px;
+      margin: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .download-title {
+      font-size: 1.1rem;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .download-info {
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      line-height: 1.5;
+      font-size: 0.9rem;
+    }
+
+    .download-info strong {
+      color: var(--accent);
+      font-family: 'SF Mono', Monaco, monospace;
+    }
+
+    .download-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .download-btn {
+      padding: 10px 20px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .download-btn:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+    }
+
+    .download-btn:disabled {
+      background: var(--bg-tertiary);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .download-btn.cancel {
+      background: var(--bg-tertiary);
+    }
+
+    .download-btn.cancel:hover {
+      background: var(--bg-secondary);
+    }
+
+    .download-progress {
+      margin-top: 16px;
+      display: none;
+    }
+
+    .download-progress.active {
+      display: block;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .progress-text {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .status {
+      text-align: center;
+      padding: 30px 16px;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 30px;
+    }
+
+    .loading.active {
+      display: block;
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--bg-tertiary);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .results {
+      display: none;
+    }
+
+    .results.active {
+      display: block;
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .results-count {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .results-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .result-card {
+      background: var(--bg-secondary);
+      border-radius: 10px;
+      padding: 14px;
+      box-shadow: 0 2px 4px var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 1px solid var(--border);
+    }
+
+    .result-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow);
+      border-color: var(--bg-tertiary);
+    }
+
+    .result-network {
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .result-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 8px;
+    }
+
+    .result-field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .field-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+
+    .field-value {
+      font-size: 0.9rem;
+      color: var(--text-primary);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .org-section {
+      margin-top: 20px;
+      padding: 16px;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .org-section-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .org-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .org-tag {
+      display: inline-block;
+      padding: 6px 12px;
+      background: var(--bg-tertiary);
+      color: var(--accent);
+      border-radius: 20px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+
+    .org-tag:hover {
+      background: var(--bg-secondary);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-top: 20px;
+      padding: 16px;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .page-btn {
+      padding: 6px 12px;
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .page-btn:hover:not(:disabled) {
+      background: var(--bg-secondary);
+      color: var(--accent);
+    }
+
+    .page-btn.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    .page-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .nav-btn {
+      padding: 6px 16px;
+      font-weight: 600;
+    }
+
+    .offline-badge {
+      display: none;
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      background: var(--warning);
+      color: var(--bg-primary);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+
+    .offline-badge.active {
+      display: block;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 30px;
+      padding: 20px 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer-status {
+      color: var(--success);
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .footer-status::before {
+      content: '✓';
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .footer-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      padding: 6px 12px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+
+    .footer-link:hover {
+      background: var(--bg-tertiary);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .footer-link svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+
+      h1 {
+        font-size: 1.25rem;
+      }
+
+      .logo {
+        max-width: 120px;
+      }
+
+      .search-box {
+        padding: 12px;
+      }
+
+      #query {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+      }
+
+      #searchBtn {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+      }
+
+      .examples-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      }
+
+      .map-container,
+      #map,
+      .leaflet-container {
+        height: 250px;
+      }
+
+      .result-card {
+        padding: 12px;
+      }
+
+      .result-network {
+        font-size: 0.9rem;
+      }
+
+      .result-details {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .org-tag {
+        font-size: 0.75rem;
+        padding: 5px 10px;
+      }
+
+      .download-content {
+        padding: 20px;
+        margin: 10px;
+      }
+    }
+
+    @media (min-width: 768px) {
+      body {
+        padding: 24px;
+        font-size: 15px;
+      }
+
+      .logo {
+        max-width: 180px;
+      }
+
+      h1 {
+        font-size: 1.75rem;
+      }
+
+      .map-container,
+      #map,
+      .leaflet-container {
+        height: 400px;
+      }
+
+      .result-details {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      display: none;
+    }
+
+    .container.active {
+      display: block;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .logo {
+      max-width: 200px;
+      height: auto;
+      margin-bottom: 16px;
+      border-radius: 12px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #60a5fa;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      font-size: 0.95rem;
+    }
+
+    .search-box {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+      margin-bottom: 24px;
+    }
+
+    .search-box label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #cbd5e1;
+    }
+
+    .search-input-wrapper {
+      display: flex;
+      gap: 12px;
+    }
+
+    #query {
+      flex: 1;
+      padding: 14px 18px;
+      border: 2px solid #334155;
+      border-radius: 8px;
+      font-size: 1rem;
+      background: #0f172a;
+      color: #e2e8f0;
+      transition: border-color 0.2s;
+    }
+
+    #query:focus {
+      outline: none;
+      border-color: #60a5fa;
+    }
+
+    #searchBtn {
+      padding: 14px 28px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #searchBtn:hover {
+      background: #2563eb;
+    }
+
+    #searchBtn:disabled {
+      background: #475569;
+      cursor: not-allowed;
+    }
+
+    .examples {
+      margin-top: 16px;
+    }
+
+    .examples-title {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      margin-bottom: 10px;
+    }
+
+    .examples-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 8px;
+    }
+
+    .example-tag {
+      display: inline-block;
+      padding: 6px 12px;
+      background: #334155;
+      color: #60a5fa;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      border: 1px solid transparent;
+    }
+
+    .example-tag:hover {
+      background: #475569;
+      border-color: #60a5fa;
+      transform: translateY(-1px);
+    }
+
+    .example-section {
+      margin-top: 24px;
+    }
+
+    .example-section-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #60a5fa;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .example-section-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 16px;
+      background: #60a5fa;
+      border-radius: 2px;
+    }
+
+    .user-guide {
+      margin-top: 40px;
+      padding: 24px;
+      background: #1e293b;
+      border-radius: 12px;
+      border: 1px solid #334155;
+    }
+
+    .user-guide h3 {
+      color: #60a5fa;
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+    }
+
+    .guide-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .guide-card {
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 16px;
+      border: 1px solid #334155;
+    }
+
+    .guide-card h4 {
+      color: #e2e8f0;
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .guide-card p {
+      color: #94a3b8;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+
+    .guide-card code {
+      background: #334155;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 0.8rem;
+      color: #60a5fa;
+    }
+
+    .guide-examples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .guide-example {
+      padding: 4px 10px;
+      background: #1e293b;
+      border: 1px solid #475569;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .guide-example:hover {
+      background: #334155;
+      border-color: #60a5fa;
+      color: #60a5fa;
+    }
+
+    .result-network {
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-color: transparent;
+      transition: all 0.2s;
+    }
+
+    .result-network:hover {
+      text-decoration-color: #60a5fa;
+    }
+
+    .download-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .download-modal.active {
+      display: flex;
+    }
+
+    .download-content {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 32px;
+      text-align: center;
+      max-width: 400px;
+      margin: 20px;
+      border: 1px solid #334155;
+    }
+
+    .download-title {
+      font-size: 1.25rem;
+      color: #e2e8f0;
+      margin-bottom: 16px;
+    }
+
+    .download-info {
+      color: #94a3b8;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .download-info strong {
+      color: #60a5fa;
+      font-family: 'SF Mono', Monaco, monospace;
+    }
+
+    .download-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .download-btn {
+      padding: 12px 24px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .download-btn:hover {
+      background: #2563eb;
+      transform: translateY(-2px);
+    }
+
+    .download-btn:disabled {
+      background: #475569;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .download-btn.cancel {
+      background: #334155;
+    }
+
+    .download-btn.cancel:hover {
+      background: #475569;
+    }
+
+    .download-progress {
+      margin-top: 20px;
+      display: none;
+    }
+
+    .download-progress.active {
+      display: block;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #334155;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #3b82f6;
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .progress-text {
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    .status {
+      text-align: center;
+      padding: 40px 20px;
+      color: #94a3b8;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .loading.active {
+      display: block;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #334155;
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .map-container {
+      display: block;
+      margin: 24px 0;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #334155;
+      width: 100%;
+      height: 400px;
+    }
+
+    #map {
+      height: 400px;
+      width: 100%;
+      background: #0f172a;
+    }
+
+    .leaflet-container {
+      height: 400px !important;
+      width: 100% !important;
+    }
+
+    .leaflet-default-icon-path {
+      background-image: url(images/marker-icon.png);
+    }
+
+    .leaflet-container .leaflet-control-attribution {
+      background: rgba(15, 23, 42, 0.8);
+      color: #94a3b8;
+      font-size: 10px;
+    }
+
+    .leaflet-container .leaflet-control-attribution a {
+      color: var(--accent);
+    }
+
+    .country-tooltip {
+      background: var(--bg-secondary) !important;
+      color: var(--text-primary) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 4px !important;
+      padding: 2px 6px !important;
+      font-weight: 600 !important;
+      font-size: 12px !important;
+    }
+
+    .results {
+      display: none;
+    }
+
+    .results.active {
+      display: block;
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .results-count {
+      color: #94a3b8;
+      font-size: 0.95rem;
+    }
+
+    .results-list {
+      display: grid;
+      gap: 16px;
+    }
+
+    .result-card {
+      background: #1e293b;
+      border-radius: 10px;
+      padding: 18px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 1px solid #334155;
+    }
+
+    .result-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      border-color: #475569;
+    }
+
+    .result-network {
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #60a5fa;
+      margin-bottom: 8px;
+    }
+
+    .result-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .result-field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .field-label {
+      font-size: 0.75rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+
+    .field-value {
+      font-size: 0.95rem;
+      color: #e2e8f0;
+    }
+
+    .org-section {
+      margin-bottom: 24px;
+      padding: 20px;
+      background: #1e293b;
+      border-radius: 12px;
+      border: 1px solid #334155;
+    }
+
+    .org-section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-bottom: 16px;
+    }
+
+    .org-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .org-tag {
+      display: inline-block;
+      padding: 8px 16px;
+      background: #334155;
+      color: #60a5fa;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+
+    .org-tag:hover {
+      background: #475569;
+      border-color: #60a5fa;
+      transform: translateY(-1px);
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-top: 24px;
+      padding: 20px;
+      background: #1e293b;
+      border-radius: 12px;
+      border: 1px solid #334155;
+    }
+
+    .page-btn {
+      padding: 8px 16px;
+      background: #334155;
+      color: #e2e8f0;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .page-btn:hover:not(:disabled) {
+      background: #475569;
+      color: #60a5fa;
+    }
+
+    .page-btn.active {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .page-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .nav-btn {
+      padding: 8px 20px;
+      font-weight: 600;
+    }
+
+    .offline-badge {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #f59e0b;
+      color: #0f172a;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .offline-badge.active {
+      display: block;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      padding: 24px 20px;
+      border-top: 1px solid #334155;
+    }
+
+    .footer-status {
+      color: #10b981;
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .footer-status::before {
+      content: '✓';
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .footer-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 8px 16px;
+      background: #1e293b;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      transition: all 0.2s;
+    }
+
+    .footer-link:hover {
+      background: #334155;
+      border-color: #60a5fa;
+      color: #60a5fa;
+    }
+
+    .footer-link svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .wallet-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #0f172a;
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .wallet-overlay.active {
+      display: flex;
+    }
+
+    .wallet-modal {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      max-width: 400px;
+      margin: 20px;
+      border: 1px solid #334155;
+    }
+
+    .wallet-logo {
+      margin-bottom: 20px;
+    }
+
+    .wallet-logo[alt="Logo"] {
+      max-width: 150px;
+      border-radius: 12px;
+    }
+
+    .wallet-title {
+      font-size: 1.5rem;
+      color: #e2e8f0;
+      margin-bottom: 12px;
+    }
+
+    .wallet-desc {
+      color: #94a3b8;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .wallet-btn {
+      padding: 14px 32px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin: 8px;
+    }
+
+    .wallet-btn:hover {
+      background: #2563eb;
+      transform: translateY(-2px);
+    }
+
+    .wallet-btn.secondary {
+      background: #334155;
+    }
+
+    .wallet-btn.secondary:hover {
+      background: #475569;
+    }
+
+    .wallet-status {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    .wallet-status.error {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      border: 1px solid #dc2626;
+    }
+
+    .wallet-status.success {
+      background: rgba(34, 197, 94, 0.2);
+      color: #86efac;
+      border: 1px solid #16a34a;
+    }
+
+    .wallet-balance {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 600px) {
+      .search-input-wrapper {
+        flex-direction: column;
+      }
+
+      #searchBtn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <a href="https://x.com/liveonkas" target="_blank" rel="noopener noreferrer">
+        <img src="wostr-sec.jpg" alt="Worldwide Network Explorer Logo" class="logo">
+      </a>
+      <h1>Worldwide Network Explorer</h1>
+      <p class="subtitle">Search IP addresses, AS numbers, organizations, and domains worldwide</p>
+      <p class="tagline">Secure your Boundary</p>
+      <div class="theme-switcher">
+        <select id="themeSelect" onchange="changeTheme(this.value)">
+          <option value="dark">Dark (Default)</option>
+          <option value="light">Light</option>
+          <option value="nord">Nord</option>
+          <option value="dracula">Dracula</option>
+          <option value="github">GitHub</option>
+          <option value="ocean">Ocean</option>
+        </select>
+      </div>
+      <a href="FEATURES.html" class="features-link"
+        style="display: inline-block; margin-top: 12px; color: var(--accent); text-decoration: none; font-size: 0.9rem; padding: 6px 12px; background: var(--bg-secondary); border-radius: 6px; border: 1px solid var(--border); transition: all 0.2s;">Features</a>
+    </header>
+
+    <div class="map-container" id="mapContainer">
+      <div id="map"></div>
+    </div>
+
+    <div class="search-box">
+      <label for="query">Enter your search query</label>
+      <div class="search-input-wrapper">
+        <input type="text" id="query" placeholder="e.g., Google in US, Netflix in JP, Hetzner in Germany..."
+          autocomplete="off">
+        <button id="searchBtn" disabled>Search</button>
+      </div>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Searching...</p>
+    </div>
+
+    <div class="results" id="results">
+      <div class="results-header">
+        <span class="results-count" id="resultsCount"></span>
+      </div>
+      <div class="results-list" id="resultsList"></div>
+    </div>
+
+    <p class="examples">
+      <span class="examples-title">Example Searches (click to try):</span>
+    <div class="example-section">
+      <div class="example-section-title">All Countries</div>
+      <div class="examples-grid">
+        <span class="example-tag" onclick="setQueryAndSearch('Afghanistan')">Afghanistan</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Albania')">Albania</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Algeria')">Algeria</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Andorra')">Andorra</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Angola')">Angola</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Antigua and Barbuda')">Antigua and Barbuda</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Argentina')">Argentina</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Armenia')">Armenia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Australia')">Australia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Austria')">Austria</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Azerbaijan')">Azerbaijan</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Bahamas')">Bahamas</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Bahrain')">Bahrain</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Bangladesh')">Bangladesh</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Barbados')">Barbados</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Belarus')">Belarus</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Belize')">Belize</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Benin')">Benin</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Bhutan')">Bhutan</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Bolivia')">Bolivia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Bosnia and Herzegovina')">Bosnia and Herzegovina</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Botswana')">Botswana</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Brazil')">Brazil</span>
+        <span class="example-tag" onclick="setQueryAndSearch('British Virgin Islands')">British Virgin Islands</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Brunei')">Brunei</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Bulgaria')">Bulgaria</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Burkina Faso')">Burkina Faso</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Burundi')">Burundi</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Cabo Verde')">Cabo Verde</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Cambodia')">Cambodia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Cameroon')">Cameroon</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Cayman Islands')">Cayman Islands</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Central African Republic')">Central African
+          Republic</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Chad')">Chad</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Chile')">Chile</span>
+        <span class="example-tag" onclick="setQueryAndSearch('China')">China</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Colombia')">Colombia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Costa Rica')">Costa Rica</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Croatia')">Croatia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Cuba')">Cuba</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Curaçao')">Curaçao</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Cyprus')">Cyprus</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Democratic Republic of the Congo')">Democratic Republic of
+          the Congo</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Djibouti')">Djibouti</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Dominica')">Dominica</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Dominican Republic')">Dominican Republic</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Ecuador')">Ecuador</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Egypt')">Egypt</span>
+        <span class="example-tag" onclick="setQueryAndSearch('El Salvador')">El Salvador</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Estonia')">Estonia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Eswatini')">Eswatini</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Ethiopia')">Ethiopia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Fiji')">Fiji</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Finland')">Finland</span>
+        <span class="example-tag" onclick="setQueryAndSearch('France')">France</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Gabon')">Gabon</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Gambia')">Gambia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Georgia')">Georgia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Ghana')">Ghana</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Gibraltar')">Gibraltar</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Greece')">Greece</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Greenland')">Greenland</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Grenada')">Grenada</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Guam')">Guam</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Guatemala')">Guatemala</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Guinea')">Guinea</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Guinea-Bissau')">Guinea-Bissau</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Guyana')">Guyana</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Haiti')">Haiti</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Honduras')">Honduras</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Hungary')">Hungary</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Iceland')">Iceland</span>
+        <span class="example-tag" onclick="setQueryAndSearch('India')">India</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Indonesia')">Indonesia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Iran')">Iran</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Iraq')">Iraq</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Ireland')">Ireland</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Israel')">Israel</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Italy')">Italy</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Jamaica')">Jamaica</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Jordan')">Jordan</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Kazakhstan')">Kazakhstan</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Kenya')">Kenya</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Kuwait')">Kuwait</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Kyrgyzstan')">Kyrgyzstan</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Laos')">Laos</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Latvia')">Latvia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Lebanon')">Lebanon</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Lesotho')">Lesotho</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Liberia')">Liberia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Libya')">Libya</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Liechtenstein')">Liechtenstein</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Lithuania')">Lithuania</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Luxembourg')">Luxembourg</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Madagascar')">Madagascar</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Malawi')">Malawi</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Malaysia')">Malaysia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Maldives')">Maldives</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Mali')">Mali</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Malta')">Malta</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Mauritania')">Mauritania</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Mauritius')">Mauritius</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Micronesia')">Micronesia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Moldova')">Moldova</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Monaco')">Monaco</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Mongolia')">Mongolia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Montenegro')">Montenegro</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Morocco')">Morocco</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Mozambique')">Mozambique</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Myanmar')">Myanmar</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Namibia')">Namibia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Nauru')">Nauru</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Nepal')">Nepal</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Netherlands')">Netherlands</span>
+        <span class="example-tag" onclick="setQueryAndSearch('New Zealand')">New Zealand</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Nicaragua')">Nicaragua</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Niger')">Niger</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Nigeria')">Nigeria</span>
+        <span class="example-tag" onclick="setQueryAndSearch('North Korea')">North Korea</span>
+        <span class="example-tag" onclick="setQueryAndSearch('North Macedonia')">North Macedonia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Oman')">Oman</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Pakistan')">Pakistan</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Panama')">Panama</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Papua New Guinea')">Papua New Guinea</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Paraguay')">Paraguay</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Peru')">Peru</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Philippines')">Philippines</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Poland')">Poland</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Portugal')">Portugal</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Qatar')">Qatar</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Romania')">Romania</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Russia')">Russia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Rwanda')">Rwanda</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Saint Kitts and Nevis')">Saint Kitts and Nevis</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Saint Lucia')">Saint Lucia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Saint Vincent and the Grenadines')">Saint Vincent and the
+          Grenadines</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Samoa')">Samoa</span>
+        <span class="example-tag" onclick="setQueryAndSearch('San Marino')">San Marino</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Sao Tome and Principe')">Sao Tome and Principe</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Saudi Arabia')">Saudi Arabia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Senegal')">Senegal</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Serbia')">Serbia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Seychelles')">Seychelles</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Sierra Leone')">Sierra Leone</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Singapore')">Singapore</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Slovakia')">Slovakia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Slovenia')">Slovenia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Solomon Islands')">Solomon Islands</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Somalia')">Somalia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('South Africa')">South Africa</span>
+        <span class="example-tag" onclick="setQueryAndSearch('South Korea')">South Korea</span>
+        <span class="example-tag" onclick="setQueryAndSearch('South Sudan')">South Sudan</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Spain')">Spain</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Sri Lanka')">Sri Lanka</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Sudan')">Sudan</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Suriname')">Suriname</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Sweden')">Sweden</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Switzerland')">Switzerland</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Syria')">Syria</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Tajikistan')">Tajikistan</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Tanzania')">Tanzania</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Thailand')">Thailand</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Timor-Leste')">Timor-Leste</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Togo')">Togo</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Tonga')">Tonga</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Trinidad and Tobago')">Trinidad and Tobago</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Tunisia')">Tunisia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Turkey')">Turkey</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Turkmenistan')">Turkmenistan</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Tuvalu')">Tuvalu</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Uganda')">Uganda</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Ukraine')">Ukraine</span>
+        <span class="example-tag" onclick="setQueryAndSearch('United Arab Emirates')">United Arab Emirates</span>
+        <span class="example-tag" onclick="setQueryAndSearch('United Kingdom')">United Kingdom</span>
+        <span class="example-tag" onclick="setQueryAndSearch('United States')">United States</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Uruguay')">Uruguay</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Uzbekistan')">Uzbekistan</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Vanuatu')">Vanuatu</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Vatican City')">Vatican City</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Venezuela')">Venezuela</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Vietnam')">Vietnam</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Yemen')">Yemen</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Zambia')">Zambia</span>
+        <span class="example-tag" onclick="setQueryAndSearch('Zimbabwe')">Zimbabwe</span>
+      </div>
+    </div>
+    </p>
+
+    <footer>
+      <div class="footer-status" id="footerStatus">Database loaded - 1,254,989 records ready for search</div>
+      <div class="footer-links">
+        <a href="https://x.com/liveonkas" target="_blank" rel="noopener noreferrer" class="footer-link">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+          </svg>
+          KASPA LIVE
+        </a>
+        <a href="https://t.me/kspr_home_bot" target="_blank" rel="noopener noreferrer" class="footer-link">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.696.064-1.225-.46-1.901-.903-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+          </svg>
+          KRC20 Bot
+        </a>
+        <a href="https://iplocate.io/" target="_blank" rel="noopener noreferrer" class="footer-link"
+          style="color: var(--success);">
+          iplocate.io
+        </a>
+      </div>
+    </footer>
+  </div>
+
+  <div class="offline-badge" id="offlineBadge">📴 You're offline</div>
+
+  <div class="download-modal" id="downloadModal">
+    <div class="download-content">
+      <h3 class="download-title">Download Random IPs</h3>
+      <p class="download-info">
+        Network range:<br>
+        <strong id="downloadNetwork"></strong><br>
+        <span id="downloadCount" style="color: #60a5fa; font-size: 0.9rem;"></span>
+      </p>
+      <div class="download-buttons">
+        <button class="download-btn" id="confirmDownload">Download ZIP</button>
+        <button class="download-btn cancel" id="cancelDownload">Cancel</button>
+      </div>
+      <div class="download-progress" id="downloadProgress">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <p class="progress-text" id="progressText">Generating IPs...</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="sql-wasm.js"></script>
+  <script type="module">
+    import { Archive } from './libarchive/libarchive.js';
+    window.Archive = Archive;
+  </script>
+  <script src="jszip.min.js"></script>
+  <script src="leaflet.js"></script>
+  <script src="app.js" defer></script>
+</body>
+
+</html>
