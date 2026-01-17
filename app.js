@@ -181,53 +181,16 @@ async function initDatabase() {
         console.error('getFilesArray failed:', e);
       }
 
-      console.log('Detected files count:', filesList.length);
-      filesList.forEach((f, i) => console.log(`File ${i}:`, JSON.stringify({
-        path: f.path,
-        name: f.name,
-        fileName: f.fileName,
-        size: f.size
-      })));
-
-      // Try to find .db, but if there's only 1 file, assume it's the DB
-      let dbEntry = filesList.find(entry => entry.path && entry.path.toLowerCase().endsWith('.db'));
-
-      if (!dbEntry && filesList.length === 1) {
-        console.log('Single file archive detected, using it as DB.');
-        dbEntry = filesList[0];
+      if (filesList.length === 0) {
+        throw new Error('Archive is empty');
       }
 
-      let dbBuffer;
-      if (dbEntry) {
-        statusEl.querySelector('#initStatus').textContent = 'Extracting database...';
-        console.log('Extracting:', dbEntry.path || 'unnamed root file');
-        const dbFile = await dbEntry.file.extract();
-        dbBuffer = await dbFile.arrayBuffer();
-      } else {
-        console.log('Falling back to full extraction...');
-        const allFiles = await archive.extractFiles();
-
-        function findDB(obj) {
-          for (const key in obj) {
-            if (key.toLowerCase().endsWith('.db')) return obj[key];
-            if (typeof obj[key] === 'object' && !(obj[key] instanceof File)) {
-              const found = findDB(obj[key]);
-              if (found) return found;
-            }
-          }
-          // Check if only one file exists in the extracted tree
-          const entries = Object.entries(obj);
-          if (entries.length === 1 && entries[0][1] instanceof File) return entries[0][1];
-          return null;
-        }
-
-        const dbFile = findDB(allFiles);
-        if (!dbFile) {
-          const pathList = filesList.map(f => `"${f.path || 'no-path'}"`).join(', ');
-          throw new Error(`Database not found. Archive contains ${filesList.length} items: ${pathList}`);
-        }
-        dbBuffer = await dbFile.arrayBuffer();
-      }
+      // Just take the first file found in the archive
+      const dbEntry = filesList[0];
+      statusEl.querySelector('#initStatus').textContent = 'Extracting database...';
+      console.log('Extracting:', dbEntry.path || 'primary file');
+      const dbFile = await dbEntry.file.extract();
+      const dbBuffer = await dbFile.arrayBuffer();
 
       const buffer = new Uint8Array(dbBuffer);
 
