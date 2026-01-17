@@ -15,7 +15,8 @@ async function initDatabase() {
   try {
     const { createClient } = await import('https://cdn.jsdelivr.net/npm/@libsql/client@0.6.0/+esm');
     db = createClient({ 
-      url: TURSO_DB_URL
+      url: TURSO_DB_URL,
+      embedded: true
     });
     document.getElementById('searchBtn').disabled = false;
     showApp();
