@@ -150,3 +150,32 @@ Enhanced the country click interaction:
 - All 190+ country circles remain visible at all zoom levels
 - Fixed TypeError by passing `query` parameter to `updateMapForSearch(results, query)` function
 
+### 30. Tool Command Generator - Download Modal Transformation
+Replaced the simple IP download feature with a comprehensive network scanning tool command generator:
+- Added 7 tool sections: Nmap, Masscan, Naabu, RustScan, ZMap, Gobuster, Httpx
+- Each tool provides 5 pre-configured scan commands with customizable targets
+- Commands include timeout settings, output file naming convention, and common flags
+- File output format standardized: `{timestamp}_{sanitizedNetwork}_{tool}.txt`
+- Example: `20260118123045_192.168.1.0-24_nmap.txt`
+- All sections are collapsible for easier navigation
+- Each command has a Copy button with event.stopPropagation() to prevent modal closure
+
+### 31. Organization Click Behavior Enhancement
+Changed organization click behavior for better search functionality:
+- Clicking an organization now searches by ASN instead of copying the name
+- Added `window.orgAsnMap` global object to store org-to-ASN mappings
+- "Other Organizations" section now displays above paginated results
+- Fixed double quote escaping issue in organization names
+
+### 32. Auto-Scroll to Results
+Added automatic scrolling to search results after search completes:
+- Implemented `scrollIntoView()` function with 100ms delay
+- Ensures users are smoothly scrolled to results after search completion
+- Uses `behavior: 'smooth', block: 'start'` for better UX
+
+### 33. File Format Standardization
+Unified file naming convention across all scanning tools:
+- All tools now use: `{timestamp}_{sanitizedNetwork}_{tool}.txt`
+- Network CIDRs have slashes replaced with hyphens (e.g., `192.168.1.0-24`)
+- Timestamps formatted as `yyyymmddhhmmss` (e.g., `20260118123045`)
+- Consistent naming ensures easy file management and identification

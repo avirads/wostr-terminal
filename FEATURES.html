@@ -316,8 +316,8 @@
         <span class="stat-label">Countries Covered</span>
       </div>
       <div class="stat-box">
-        <span class="stat-number">6</span>
-        <span class="stat-label">Search Types</span>
+        <span class="stat-number">7</span>
+        <span class="stat-label">Scanning Tools</span>
       </div>
       <div class="stat-box">
         <span class="stat-number">6</span>
@@ -336,12 +336,12 @@
         <p>Visualize network distributions globally with clickable country markers. Zoom out to see all countries at once.</p>
       </div>
       <div class="feature-card">
-        <h3>&#128229; IP Download</h3>
-        <p>Generate and download 999 random IP addresses from any network range for security analysis and testing.</p>
+        <h3>&#128187; Scanning Tool Generator</h3>
+        <p>Click any network to generate ready-to-use scan commands for Nmap, Masscan, Naabu, RustScan, ZMap, Gobuster, and Httpx. Copy with one click.</p>
       </div>
       <div class="feature-card">
         <h3>&#128101; Organization Discovery</h3>
-        <p>When searching a country, discover all organizations operating there. Click to copy organization names.</p>
+        <p>When searching a country, discover all organizations operating there. Click to search by ASN for more details.</p>
       </div>
       <div class="feature-card">
         <h3>&#128196; Pagination</h3>
@@ -387,12 +387,46 @@
       </div>
     </div>
 
+    <h2>Built-in Scanning Tools</h2>
+    <p>Every network search result includes ready-to-use scan commands for 7 popular network scanning tools. Click any network to generate commands:</p>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3>&#128268; Nmap</h3>
+        <p>The industry standard for network exploration and security auditing. Port scanning, service detection, OS fingerprinting.</p>
+      </div>
+      <div class="feature-card">
+        <h3>&#128640; Masscan</h3>
+        <p>Ultra-fast port scanner capable of scanning the entire internet in minutes. Best for large-scale reconnaissance.</p>
+      </div>
+      <div class="feature-card">
+        <h3>&#128225; Naabu</h3>
+        <p>Reliable and fast port scanner written in Go. Simple yet powerful for subdomain and port discovery.</p>
+      </div>
+      <div class="feature-card">
+        <h3>&#128187; RustScan</h3>
+        <p>Modern, ultra-fast port scanner written in Rust. Designed to be faster than Nmap while maintaining accuracy.</p>
+      </div>
+      <div class="feature-card">
+        <h3>&#127760; ZMap</h3>
+        <p>Open-source network scanner that can scan the entire IPv4 address space in under 45 minutes. Research-grade speed.</p>
+      </div>
+      <div class="feature-card">
+        <h3>&#128451; Gobuster</h3>
+        <p>Directory/file and DNS busting tool. Discover hidden paths, subdirectories, and DNS subdomains.</p>
+      </div>
+      <div class="feature-card">
+        <h3>&#127760; Httpx</h3>
+        <p>Fast and reliable HTTP probe tool. Identify live web servers, running services, and HTTP responses.</p>
+      </div>
+    </div>
+
     <h2>How to Use</h2>
     <ol>
       <li><strong>Enter a search query</strong> in the search box using any of the search types above</li>
       <li><strong>Press Enter</strong> or click the <strong>Search</strong> button</li>
       <li><strong>Browse results</strong> - each card shows network, ASN, country, name, organization, and domain</li>
-      <li><strong>Click a network</strong> to download 999 random IPs from that range</li>
+      <li><strong>Click a network</strong> to open the scanning tool command generator with 7 network scanners</li>
+      <li><strong>Copy commands</strong> for Nmap, Masscan, Naabu, RustScan, ZMap, Gobuster, or Httpx with one click</li>
       <li><strong>Click countries</strong> on the map to search that country directly</li>
       <li><strong>Use example tags</strong> below the search box for quick searches</li>
       <li><strong>Scroll down</strong> to see other organizations in the searched country</li>
@@ -480,8 +514,16 @@
       </div>
     </div>
 
+    <div class="use-case">
+      <h3>&#128268; Quick Reconnaissance with Built-in Tools</h3>
+      <p>Jumpstart your reconnaissance by generating ready-to-use scan commands for any discovered network range. Copy commands for Nmap, Masscan, Naabu, RustScan, ZMap, Gobuster, or Httpx instantly.</p>
+      <div class="example">
+        During a pentest engagement, discover that your target uses AWS. Search for "Amazon" to find their IP ranges, click a network, and copy a pre-configured Nmap or Masscan command to begin port scanning immediately.
+      </div>
+    </div>
+
     <h2>Database Information</h2>
-    <p>The application uses a comprehensive IP-to-ASN database containing over 1.25 million records covering 250+ countries. Data includes:</p>
+    <p>The application uses a comprehensive IP-to-ASN database containing over 1.25 million records covering 250+ countries. The database is compressed using 7z compression (reducing 28MB to 7MB) and decompressed in the browser using libarchive.js. Data includes:</p>
     <ul>
       <li><strong>Network/CIDR:</strong> IP address range in CIDR notation</li>
       <li><strong>ASN:</strong> Autonomous System Number for routing policy identification</li>
@@ -493,7 +535,7 @@
     <p>This data is sourced from <a href="https://github.com/iplocate/ip-address-databases" target="_blank" rel="noopener noreferrer">github.com/iplocate/ip-address-databases</a>, a community project dedicated to maintaining open IP geolocation data.</p>
 
     <div class="info">
-      <strong>&#128161; Tip:</strong> The database is loaded entirely in the browser using WebAssembly (SQLite). No data is sent to external servers, ensuring privacy while you search.
+      <strong>&#128161; Tip:</strong> The database is loaded entirely in the browser using WebAssembly (SQLite) after decompressing a 7z archive. No data is sent to external servers, ensuring privacy while you search. The 7z compression reduces initial download from 28MB to 7MB.
     </div>
 
     <div class="warning">
@@ -505,7 +547,7 @@
       <li><strong>Frontend:</strong> Vanilla JavaScript, no frameworks required</li>
       <li><strong>Database:</strong> SQLite with sql.js (WebAssembly)</li>
       <li><strong>Maps:</strong> Leaflet.js for interactive mapping</li>
-      <li><strong>ZIP Creation:</strong> JSZip for client-side file generation</li>
+      <li><strong>Archive:</strong> libarchive.js for 7z decompression in browser</li>
       <li><strong>PWA:</strong> Service Worker for offline capability</li>
       <li><strong>Architecture:</strong> Serverless, runs entirely in browser</li>
     </ul>

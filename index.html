@@ -380,8 +380,9 @@
       background: rgba(0,0,0,0.7);
       z-index: 2000;
       justify-content: center;
-      align-items: center;
-      padding: 20px;
+      align-items: flex-start;
+      padding: 40px 20px;
+      overflow-y: auto;
     }
     .download-modal.active { display: flex; }
     .download-content {
@@ -389,8 +390,9 @@
       border-radius: 16px;
       padding: 24px;
       text-align: center;
-      max-width: 360px;
-      margin: 20px;
+      max-width: 550px;
+      width: 100%;
+      margin: auto;
       border: 1px solid var(--border);
     }
     .download-title {
@@ -462,6 +464,100 @@
     .progress-text {
       font-size: 0.8rem;
       color: var(--text-secondary);
+    }
+    .nmap-commands {
+      text-align: left;
+      margin: 16px 0;
+      max-height: 450px;
+      overflow-y: auto;
+    }
+    .nmap-section {
+      margin-bottom: 12px;
+    }
+    .nmap-section:not(:last-child) {
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .nmap-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      padding: 8px 0;
+      user-select: none;
+    }
+    .nmap-section-header:hover .nmap-section-title {
+      color: var(--accent);
+    }
+    .nmap-section-title {
+      font-size: 0.7rem;
+      color: var(--accent);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .nmap-section-toggle {
+      font-size: 0.6rem;
+      color: var(--text-secondary);
+      transition: transform 0.2s;
+    }
+    .nmap-section-content {
+      display: block;
+      overflow: hidden;
+    }
+    .nmap-section-content.collapsed {
+      display: none;
+    }
+    .nmap-command {
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+    .nmap-command-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3px;
+    }
+    .nmap-command-title {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+    .nmap-command-note {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-style: italic;
+    }
+    .nmap-command-row {
+      background: var(--bg-primary);
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 0.65rem;
+      color: var(--text-primary);
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.3;
+    }
+    .nmap-copy-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 3px;
+      padding: 2px 6px;
+      font-size: 0.6rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .nmap-copy-btn:hover {
+      background: var(--accent-hover);
+    }
+    .nmap-copy-btn.copied {
+      background: #22c55e;
     }
     .status {
       text-align: center;
@@ -953,15 +1049,28 @@
       background: rgba(0,0,0,0.7);
       z-index: 2000;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
+      padding: 40px 20px;
+      overflow-y: auto;
     }
     .download-modal.active { display: flex; }
     .download-content {
       background: #1e293b;
       border-radius: 16px;
-      padding: 32px;
+      padding: 24px;
       text-align: center;
-      max-width: 400px;
+      max-width: 550px;
+      width: 100%;
+      margin: auto;
+      border: 1px solid #334155;
+    }
+    .download-modal.active { display: flex; }
+    .download-content {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      max-width: 500px;
       margin: 20px;
       border: 1px solid #334155;
     }
@@ -1032,6 +1141,100 @@
     .progress-text {
       font-size: 0.85rem;
       color: #94a3b8;
+    }
+    .nmap-commands {
+      text-align: left;
+      margin: 16px 0;
+      max-height: 450px;
+      overflow-y: auto;
+    }
+    .nmap-section {
+      margin-bottom: 12px;
+    }
+    .nmap-section:not(:last-child) {
+      padding-bottom: 12px;
+      border-bottom: 1px solid #334155;
+    }
+    .nmap-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      padding: 8px 0;
+      user-select: none;
+    }
+    .nmap-section-header:hover .nmap-section-title {
+      color: #3b82f6;
+    }
+    .nmap-section-title {
+      font-size: 0.65rem;
+      color: #3b82f6;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .nmap-section-toggle {
+      font-size: 0.55rem;
+      color: #94a3b8;
+      transition: transform 0.2s;
+    }
+    .nmap-section-content {
+      display: block;
+      overflow: hidden;
+    }
+    .nmap-section-content.collapsed {
+      display: none;
+    }
+    .nmap-command {
+      background: #1e293b;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+    .nmap-command-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3px;
+    }
+    .nmap-command-title {
+      font-size: 0.65rem;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    .nmap-command-note {
+      font-size: 0.6rem;
+      color: #64748b;
+      margin-bottom: 6px;
+      font-style: italic;
+    }
+    .nmap-command-row {
+      background: #0f172a;
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 0.6rem;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.3;
+    }
+    .nmap-copy-btn {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      padding: 2px 6px;
+      font-size: 0.55rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .nmap-copy-btn:hover {
+      background: #2563eb;
+    }
+    .nmap-copy-btn.copied {
+      background: #22c55e;
     }
     .status {
       text-align: center;
@@ -1638,16 +1841,16 @@
 
   <div class="download-modal" id="downloadModal">
     <div class="download-content">
-      <h3 class="download-title">Download Random IPs</h3>
+      <h3 class="download-title">Scan for Web Servers</h3>
       <p class="download-info">
         Network range:<br>
-        <strong id="downloadNetwork"></strong><br>
-        <span id="downloadCount" style="color: #60a5fa; font-size: 0.9rem;"></span>
+        <strong id="downloadNetwork"></strong>
       </p>
+      <div class="nmap-commands" id="nmapCommands"></div>
       <div class="download-buttons">
-        <button class="download-btn" id="confirmDownload">Download ZIP</button>
-        <button class="download-btn cancel" id="cancelDownload">Cancel</button>
+        <button class="download-btn cancel" id="cancelDownload">Close</button>
       </div>
+    </div>
       <div class="download-progress" id="downloadProgress">
         <div class="progress-bar">
           <div class="progress-fill" id="progressFill"></div>

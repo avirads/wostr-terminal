@@ -763,7 +763,10 @@ function displayResults(results) {
         <div class="org-section">
           <div class="org-section-title">Other Organizations in ${currentCountry}</div>
           <div class="org-list">
-            ${orgs.map(org => `<span class="org-tag" onclick="copyOrg('${org.replace(/'/g, "\\'")}')">${org}</span>`).join('')}
+            ${orgs.map(org => {
+              const escapedOrg = org.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+              return `<span class="org-tag" onclick="copyOrg('${escapedOrg}')">${org}</span>`;
+            }).join('')}
           </div>
         </div>
       `;
@@ -775,9 +778,13 @@ function displayResults(results) {
   const pageResults = results.slice(startIndex, endIndex);
 
   pageResults.forEach(row => {
+    const escapedNetwork = (row.network || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    const escapedOrg = (row.org || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    const escapedName = (row.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    
     html += `
       <div class="result-card">
-        <div class="result-network" onclick="showDownloadModal('${row.network}')">${row.network}</div>
+        <div class="result-network" onclick="showDownloadModal('${escapedNetwork}')">${row.network || 'N/A'}</div>
         <div class="result-details">
           <div class="result-field">
             <span class="field-label">ASN</span>
@@ -808,6 +815,13 @@ function displayResults(results) {
 
   resultsList.innerHTML = html;
   document.getElementById('results').classList.add('active');
+  
+  setTimeout(() => {
+    const resultsEl = document.getElementById('results');
+    if (resultsEl) {
+      resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, 100);
 }
 
 function getUniqueOrganizations(countryCode) {
@@ -957,82 +971,450 @@ function updateMapForSearch(results, searchQuery) {
 
 function showDownloadModal(network) {
   document.getElementById('downloadNetwork').textContent = network;
-  document.getElementById('downloadCount').textContent = '999 random IPs will be generated';
   document.getElementById('downloadModal').classList.add('active');
-  document.getElementById('downloadProgress').classList.remove('active');
-  document.getElementById('confirmDownload').disabled = false;
+  
+  const commandsDiv = document.getElementById('nmapCommands');
+  const [ip, cidr] = network.split('/');
+  const sanitizedNetwork = network.replace(/\//g, '-').replace(/[^a-zA-Z0-9.\-]/g, '-');
+  const timestamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
+  const nmapOutput = `${timestamp}_${sanitizedNetwork}_nmap.txt`;
+  const masscanOutput = `${timestamp}_${sanitizedNetwork}_masscan.txt`;
+  
+  const nmapCommands = [
+    {
+      title: 'Quick scan – most people use this',
+      note: 'Standard web server detection',
+      cmd: `nmap -p80,443 --open -oN ${nmapOutput} ${network}`
+    },
+    {
+      title: 'Fast scan – skip DNS resolution',
+      note: 'Uses alternate web ports',
+      cmd: `nmap -n -p80,443,8080,8443,8000,8888 --open -oN ${nmapOutput} ${network}`
+    },
+    {
+      title: 'Most reliable – with sudo',
+      note: 'TCP discovery on common ports',
+      cmd: `sudo nmap -PS80,443 -p80,443 --open -oN ${nmapOutput} ${network}`
+    },
+    {
+      title: 'Very fast – trusted LAN only',
+      note: 'High-speed internal scanning',
+      cmd: `nmap -T4 -p80,443 --open --min-rate 400 -oN ${nmapOutput} ${network}`
+    },
+    {
+      title: 'With page titles',
+      note: 'Shows HTTP title when found',
+      cmd: `nmap -p80,443 --open --script http-title -oN ${nmapOutput} ${network}`
+    },
+    {
+      title: 'Extreme – all ports',
+      note: 'Finds web servers on any port',
+      cmd: `nmap -p1-65535 --open -sV --version-light --script http-title -oN ${nmapOutput} ${network}`
+    }
+  ];
+  
+  const masscanCommands = [
+    {
+      title: 'Quick & safe internal subnet',
+      note: 'Most people start here',
+      cmd: `sudo masscan ${network} -p80,443 --rate 10000 -oL ${masscanOutput}`
+    },
+    {
+      title: 'Fast + reliable + alternates',
+      note: 'Personal favorite combo',
+      cmd: `sudo masscan ${network} -p80,443,8080,8443,8000-9000 --rate 150000 --open-only -oL ${masscanOutput}`
+    },
+    {
+      title: 'Very aggressive scan',
+      note: 'Trusted LAN only!',
+      cmd: `sudo masscan ${network} -p80,443 --rate 1000000 --wait 0`
+    },
+    {
+      title: 'Get banners + save nicely',
+      note: 'Good next step after discovery',
+      cmd: `sudo masscan ${network} -p80,443 --banners --rate 200000 -oJ ${masscanOutput.replace('.txt', '.json')}`
+    },
+    {
+      title: 'Resume feature',
+      note: 'Useful for very long scans',
+      cmd: `sudo masscan ${network} -p80,443 --rate 500000 --resume paused.conf`
+    }
+  ];
+  
+  const naabuCommands = [
+    {
+      title: 'Quick SYN scan',
+      note: 'Fast port discovery',
+      cmd: `echo ${network} | naabu -p 80,443 -rate 100000 -o ${masscanOutput}`
+    },
+    {
+      title: 'Full port range',
+      note: 'All 65535 ports',
+      cmd: `naabu -host ${network} -p - -rate 50000 -o ${masscanOutput}`
+    },
+    {
+      title: 'With nmap integration',
+      note: 'Auto-run nmap on results',
+      cmd: `naabu -l ${network} -p 80,443 -nmap-cli 'nmap -sV -oN ${nmapOutput}'`
+    },
+    {
+      title: 'Top 1000 ports',
+      note: 'Most common ports',
+      cmd: `naabu -host ${network} -top-ports 1000 -rate 80000 -o ${masscanOutput}`
+    },
+    {
+      title: 'JSON output',
+      note: 'For scripting',
+      cmd: `naabu -host ${network} -p 80,443 -json -o ${masscanOutput.replace('.txt', '.json')}`
+    }
+  ];
+  
+  const rustscanCommands = [
+    {
+      title: 'Lightning fast scan',
+      note: 'Fastest port scanner',
+      cmd: `rustscan -a ${network} -p 80,443 --ulimit 8000 -- -sV -oN ${nmapOutput}`
+    },
+    {
+      title: 'Quick web ports only',
+      note: 'Only scan HTTP/HTTPS',
+      cmd: `rustscan -a ${network} -p 80,443,8080,8443 --ulimit 10000 -g -oN ${nmapOutput}`
+    },
+    {
+      title: 'Full port range',
+      note: 'All 65535 ports',
+      cmd: `rustscan -a ${network} -p 1-65535 --ulimit 5000 -- -sV -A -oN ${nmapOutput}`
+    },
+    {
+      title: 'Aggressive service detection',
+      note: 'Detailed version info',
+      cmd: `rustscan -a ${network} --ulimit 8000 -- -sV --script=http-title -A -oN ${nmapOutput}`
+    },
+    {
+      title: 'Fast batch mode',
+      note: 'Optimized for speed',
+      cmd: `rustscan -a ${network} -b 5000 -t 1000 -- -sV --open -oN ${nmapOutput}`
+    }
+  ];
+  
+  const zmapCommands = [
+    {
+      title: 'Fast single port',
+      note: 'Lightning fast first pass',
+      cmd: `sudo zmap -p 80 -o ${masscanOutput} -B 1G ${network}`
+    },
+    {
+      title: 'Dual port scan',
+      note: 'HTTP + HTTPS',
+      cmd: `sudo zmap -p 80,443 -o ${masscanOutput} -B 2G ${network}`
+    },
+    {
+      title: 'High bandwidth',
+      note: 'Maximum speed scan',
+      cmd: `sudo zmap -p 443 -B 5G --max-targets=1000000 -o ${masscanOutput} ${network}`
+    },
+    {
+      title: 'With output fields',
+      note: 'Custom CSV output',
+      cmd: `sudo zmap -p 80 -o ${masscanOutput} --output-fields=ip,sport,dport,seqnum,cooldown ${network}`
+    },
+    {
+      title: 'Sharded scan',
+      note: 'Distributed scanning',
+      cmd: `sudo zmap -p 80 -o ${masscanOutput} --shards=4 --seed=12345 ${network}`
+    }
+  ];
+  
+  const gobusterCommands = [
+    {
+      title: 'Common directories',
+      note: 'Quick directory brute force',
+      cmd: `gobuster dir -u http://${ip}/ -w /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-small.txt -t 50 -o ${nmapOutput.replace('_nmap.txt', '_gobuster.txt')}`
+    },
+    {
+      title: 'With extensions',
+      note: 'Find .php, .html, .bak files',
+      cmd: `gobuster dir -u http://${ip}/ -w /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-small.txt -x php,html,bak,txt -t 50 -o ${nmapOutput.replace('_nmap.txt', '_gobuster.txt')}`
+    },
+    {
+      title: 'Common web paths',
+      note: 'API and admin endpoints',
+      cmd: `gobuster dir -u http://${ip}/ -w /usr/share/wordlists/dirb/common.txt -t 30 -o ${nmapOutput.replace('_nmap.txt', '_gobuster.txt')}`
+    },
+    {
+      title: 'Recursive scan',
+      note: 'Deep enumeration',
+      cmd: `gobuster dir -u http://${ip}/ -w /usr/share/seclists/Discovery/Web-Content/raft-small-words.txt -r -t 20 -o ${nmapOutput.replace('_nmap.txt', '_gobuster.txt')}`
+    },
+    {
+      title: 'Exclude 404s',
+      note: 'Only show valid responses',
+      cmd: `gobuster dir -u http://${ip}/ -w /usr/share/seclists/Discovery/Web-Content/raft-medium-words.txt -e -s 200,301,302 -o ${nmapOutput.replace('_nmap.txt', '_gobuster.txt')}`
+    }
+  ];
+  
+  const httpxCommands = [
+    {
+      title: 'Probe for live hosts',
+      note: 'Find active web servers',
+      cmd: `cat ${sanitizedNetwork}.txt | httpx -silent -title -status-code -o ${nmapOutput.replace('_nmap.txt', '_httpx.txt')}`
+    },
+    {
+      title: 'Full fingerprinting',
+      note: 'Title + tech + server info',
+      cmd: `httpx -l ${sanitizedNetwork}.txt -title -tech-detect -server -status-code -json -o ${nmapOutput.replace('_nmap.txt', '_httpx.json')}`
+    },
+    {
+      title: 'Quick probe',
+      note: 'Fast status check',
+      cmd: `echo ${network} | httpx -silent -status-code -title -o ${nmapOutput.replace('_nmap.txt', '_httpx.txt')}`
+    },
+    {
+      title: 'With specific ports',
+      note: 'Scan uncommon ports',
+      cmd: `cat ${sanitizedNetwork}.txt | httpx -ports 80,443,8080,8443,8000,8888 -title -sc -o ${nmapOutput.replace('_nmap.txt', '_httpx.txt')}`
+    },
+    {
+      title: 'Filter by status',
+      note: 'Only 200 OK responses',
+      cmd: `httpx -l ${sanitizedNetwork}.txt -mc 200 -title -tech-detect -o ${nmapOutput.replace('_nmap.txt', '_httpx.txt')}`
+    }
+  ];
+  
+  commandsDiv.innerHTML = `
+    <div class="nmap-section">
+      <div class="nmap-section-header" onclick="toggleSection('nmap')">
+        <span class="nmap-section-title">Nmap Commands</span>
+        <span class="nmap-section-toggle" id="nmap-toggle">▶</span>
+      </div>
+      <div class="nmap-section-content collapsed" id="nmap-content">
+        ${nmapCommands.map((c, i) => `
+          <div class="nmap-command">
+            <div class="nmap-command-header">
+              <span class="nmap-command-title">${c.title}</span>
+              <button class="nmap-copy-btn" onclick="copyNmapCmd(${i}); event.stopPropagation();">Copy</button>
+            </div>
+            <div class="nmap-command-note">${c.note}</div>
+            <div class="nmap-command-row">${c.cmd}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="nmap-section">
+      <div class="nmap-section-header" onclick="toggleSection('masscan')">
+        <span class="nmap-section-title">Masscan Commands</span>
+        <span class="nmap-section-toggle" id="masscan-toggle">▶</span>
+      </div>
+      <div class="nmap-section-content collapsed" id="masscan-content">
+        ${masscanCommands.map((c, i) => `
+          <div class="nmap-command">
+            <div class="nmap-command-header">
+              <span class="nmap-command-title">${c.title}</span>
+              <button class="nmap-copy-btn" onclick="copyMasscanCmd(${i}); event.stopPropagation();">Copy</button>
+            </div>
+            <div class="nmap-command-note">${c.note}</div>
+            <div class="nmap-command-row">${c.cmd}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="nmap-section">
+      <div class="nmap-section-header" onclick="toggleSection('naabu')">
+        <span class="nmap-section-title">Naabu Commands</span>
+        <span class="nmap-section-toggle" id="naabu-toggle">▶</span>
+      </div>
+      <div class="nmap-section-content collapsed" id="naabu-content">
+        ${naabuCommands.map((c, i) => `
+          <div class="nmap-command">
+            <div class="nmap-command-header">
+              <span class="nmap-command-title">${c.title}</span>
+              <button class="nmap-copy-btn" onclick="copyNaabuCmd(${i}); event.stopPropagation();">Copy</button>
+            </div>
+            <div class="nmap-command-note">${c.note}</div>
+            <div class="nmap-command-row">${c.cmd}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="nmap-section">
+      <div class="nmap-section-header" onclick="toggleSection('rustscan')">
+        <span class="nmap-section-title">RustScan Commands</span>
+        <span class="nmap-section-toggle" id="rustscan-toggle">▶</span>
+      </div>
+      <div class="nmap-section-content collapsed" id="rustscan-content">
+        ${rustscanCommands.map((c, i) => `
+          <div class="nmap-command">
+            <div class="nmap-command-header">
+              <span class="nmap-command-title">${c.title}</span>
+              <button class="nmap-copy-btn" onclick="copyRustscanCmd(${i}); event.stopPropagation();">Copy</button>
+            </div>
+            <div class="nmap-command-note">${c.note}</div>
+            <div class="nmap-command-row">${c.cmd}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="nmap-section">
+      <div class="nmap-section-header" onclick="toggleSection('zmap')">
+        <span class="nmap-section-title">ZMap Commands</span>
+        <span class="nmap-section-toggle" id="zmap-toggle">▶</span>
+      </div>
+      <div class="nmap-section-content collapsed" id="zmap-content">
+        ${zmapCommands.map((c, i) => `
+          <div class="nmap-command">
+            <div class="nmap-command-header">
+              <span class="nmap-command-title">${c.title}</span>
+              <button class="nmap-copy-btn" onclick="copyZmapCmd(${i}); event.stopPropagation();">Copy</button>
+            </div>
+            <div class="nmap-command-note">${c.note}</div>
+            <div class="nmap-command-row">${c.cmd}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="nmap-section">
+      <div class="nmap-section-header" onclick="toggleSection('gobuster')">
+        <span class="nmap-section-title">Gobuster Commands</span>
+        <span class="nmap-section-toggle" id="gobuster-toggle">▶</span>
+      </div>
+      <div class="nmap-section-content collapsed" id="gobuster-content">
+        ${gobusterCommands.map((c, i) => `
+          <div class="nmap-command">
+            <div class="nmap-command-header">
+              <span class="nmap-command-title">${c.title}</span>
+              <button class="nmap-copy-btn" onclick="copyGobusterCmd(${i}); event.stopPropagation();">Copy</button>
+            </div>
+            <div class="nmap-command-note">${c.note}</div>
+            <div class="nmap-command-row">${c.cmd}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="nmap-section">
+      <div class="nmap-section-header" onclick="toggleSection('httpx')">
+        <span class="nmap-section-title">Httpx Commands</span>
+        <span class="nmap-section-toggle" id="httpx-toggle">▶</span>
+      </div>
+      <div class="nmap-section-content collapsed" id="httpx-content">
+        ${httpxCommands.map((c, i) => `
+          <div class="nmap-command">
+            <div class="nmap-command-header">
+              <span class="nmap-command-title">${c.title}</span>
+              <button class="nmap-copy-btn" onclick="copyHttpxCmd(${i}); event.stopPropagation();">Copy</button>
+            </div>
+            <div class="nmap-command-note">${c.note}</div>
+            <div class="nmap-command-row">${c.cmd}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function toggleSection(type) {
+  const content = document.getElementById(`${type}-content`);
+  const toggle = document.getElementById(`${type}-toggle`);
+  content.classList.toggle('collapsed');
+  if (content.classList.contains('collapsed')) {
+    toggle.textContent = '▶';
+  } else {
+    toggle.textContent = '▼';
+  }
+}
+
+function copyNmapCmd(index) {
+  const cmd = document.querySelectorAll('.nmap-section')[0].querySelectorAll('.nmap-command-row')[index].textContent;
+  navigator.clipboard.writeText(cmd).then(() => {
+    const btn = document.querySelectorAll('.nmap-section')[0].querySelectorAll('.nmap-copy-btn')[index];
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 1500);
+  });
+}
+
+function copyMasscanCmd(index) {
+  const cmd = document.querySelectorAll('.nmap-section')[1].querySelectorAll('.nmap-command-row')[index].textContent;
+  navigator.clipboard.writeText(cmd).then(() => {
+    const btn = document.querySelectorAll('.nmap-section')[1].querySelectorAll('.nmap-copy-btn')[index];
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 1500);
+  });
+}
+
+function copyNaabuCmd(index) {
+  const cmd = document.querySelectorAll('.nmap-section')[2].querySelectorAll('.nmap-command-row')[index].textContent;
+  navigator.clipboard.writeText(cmd).then(() => {
+    const btn = document.querySelectorAll('.nmap-section')[2].querySelectorAll('.nmap-copy-btn')[index];
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 1500);
+  });
+}
+
+function copyRustscanCmd(index) {
+  const cmd = document.querySelectorAll('.nmap-section')[3].querySelectorAll('.nmap-command-row')[index].textContent;
+  navigator.clipboard.writeText(cmd).then(() => {
+    const btn = document.querySelectorAll('.nmap-section')[3].querySelectorAll('.nmap-copy-btn')[index];
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 1500);
+  });
+}
+
+function copyZmapCmd(index) {
+  const cmd = document.querySelectorAll('.nmap-section')[4].querySelectorAll('.nmap-command-row')[index].textContent;
+  navigator.clipboard.writeText(cmd).then(() => {
+    const btn = document.querySelectorAll('.nmap-section')[4].querySelectorAll('.nmap-copy-btn')[index];
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 1500);
+  });
+}
+
+function copyGobusterCmd(index) {
+  const cmd = document.querySelectorAll('.nmap-section')[5].querySelectorAll('.nmap-command-row')[index].textContent;
+  navigator.clipboard.writeText(cmd).then(() => {
+    const btn = document.querySelectorAll('.nmap-section')[5].querySelectorAll('.nmap-copy-btn')[index];
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 1500);
+  });
+}
+
+function copyHttpxCmd(index) {
+  const cmd = document.querySelectorAll('.nmap-section')[6].querySelectorAll('.nmap-command-row')[index].textContent;
+  navigator.clipboard.writeText(cmd).then(() => {
+    const btn = document.querySelectorAll('.nmap-section')[6].querySelectorAll('.nmap-copy-btn')[index];
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 1500);
+  });
 }
 
 function closeDownloadModal() {
   document.getElementById('downloadModal').classList.remove('active');
-}
-
-async function confirmDownload() {
-  const network = document.getElementById('downloadNetwork').textContent;
-  const progressDiv = document.getElementById('downloadProgress');
-  const progressFill = document.getElementById('progressFill');
-  const progressText = document.getElementById('progressText');
-  const confirmBtn = document.getElementById('confirmDownload');
-
-  confirmBtn.disabled = true;
-  progressDiv.classList.add('active');
-  progressFill.style.width = '0%';
-  progressText.textContent = 'Generating IPs...';
-
-  const ips = generateRandomIPs(network, 999);
-
-  progressFill.style.width = '50%';
-  progressText.textContent = 'Creating ZIP file...';
-
-  const zip = new JSZip();
-  zip.file('ip-addresses.txt', ips.join('\n'));
-
-  progressFill.style.width = '80%';
-  progressText.textContent = 'Compressing...';
-
-  const content = await zip.generateAsync({ type: 'blob' });
-
-  progressFill.style.width = '100%';
-  progressText.textContent = 'Download starting...';
-
-  const url = URL.createObjectURL(content);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `ip-addresses-${network.replace(/\//g, '-')}.zip`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-
-  setTimeout(() => {
-    closeDownloadModal();
-    confirmBtn.disabled = false;
-  }, 500);
-}
-
-function generateRandomIPs(network, count) {
-  const [ip, cidr] = network.split('/');
-  const parts = ip.split('.').map(Number);
-  const mask = parseInt(cidr);
-
-  const baseIP = (parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3];
-  const numIPs = Math.pow(2, 32 - mask);
-  const startIP = baseIP & (~((1 << (32 - mask)) - 1));
-
-  const ips = [];
-  for (let i = 0; i < count; i++) {
-    const randomOffset = Math.floor(Math.random() * numIPs);
-    const ipVal = startIP + randomOffset;
-
-    const a = (ipVal >> 24) & 255;
-    const b = (ipVal >> 16) & 255;
-    const c = (ipVal >> 8) & 255;
-    const d = ipVal & 255;
-
-    ips.push(`${a}.${b}.${c}.${d}`);
-  }
-
-  return ips;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1043,7 +1425,6 @@ document.addEventListener('DOMContentLoaded', () => {
       search(document.getElementById('query').value);
     }
   });
-  document.getElementById('confirmDownload').addEventListener('click', confirmDownload);
   document.getElementById('cancelDownload').addEventListener('click', closeDownloadModal);
 
   window.addEventListener('online', () => {
