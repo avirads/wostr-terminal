@@ -117,3 +117,36 @@ Change authentication logic back to check for positive KAS balance instead of KR
 - Cleaned up the codebase by removing legacy .csv files and unused developer backups.
 - Initialized `wostr-terminal` as a standalone GitHub repository.
 - Deployed to GitHub Pages at `https://avirads.github.io/wostr-terminal/`.
+
+### 27. Added Missing Countries
+Added the following 13 missing countries to the map's countryCoords object:
+- BE (Belgium): [50.8503, 4.3517]
+- CA (Canada): [56.1304, -106.3468]
+- CZ (Czech Republic): [49.8175, 15.4730] (also added to countryCodeMap)
+- DK (Denmark): [56.2639, 9.5018]
+- DE (Germany): [51.1657, 10.4515]
+- GQ (Equatorial Guinea): [1.6508, 10.2679]
+- ER (Eritrea): [15.1794, 39.7823]
+- JP (Japan): [36.2048, 138.2529]
+- KI (Kiribati): [-3.3704, -168.7340]
+- KM (Comoros): [-11.8750, 43.8722]
+- MX (Mexico): [23.6345, -102.5528]
+- NO (Norway): [60.4720, 8.4689]
+- PW (Palau): [7.5150, 134.5825]
+
+### 28. Map Zoom Constraints
+Constrained the map to prevent users from zooming out beyond the initial load view:
+- Added `minZoom: 2` to prevent zooming out beyond initial view
+- Added `maxBounds: [[-90, -180], [90, 180]]` to constrain map to world boundaries
+- Added `maxBoundsViscosity: 1.0` to make bounds completely rigid
+- Added `worldCopyJump: false` to prevent horizontal map wrapping/repeating
+- Users cannot drag or scroll to repeated map regions
+
+### 29. Country Click Behavior - Surrounding Circles & Zoom
+Enhanced the country click interaction:
+- When a country circle is clicked, the map zooms to show clicked country and nearby countries (within 15° threshold)
+- Surrounding country circles remain visible and are shown as semi-transparent markers
+- Clicked country is highlighted with larger radius (1.5x), thicker border (3px), and permanent open tooltip
+- All 190+ country circles remain visible at all zoom levels
+- Fixed TypeError by passing `query` parameter to `updateMapForSearch(results, query)` function
+

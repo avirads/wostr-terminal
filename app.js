@@ -17,7 +17,7 @@ const countryCodeMap = {
   'Bosnia and Herzegovina': 'BA', 'Botswana': 'BW', 'Brazil': 'BR', 'British Virgin Islands': 'VG', 'Brunei': 'BN',
   'Bulgaria': 'BG', 'Burkina Faso': 'BF', 'Burundi': 'BI', 'Cabo Verde': 'CV', 'Cambodia': 'KH',
   'Cameroon': 'CM', 'Cayman Islands': 'KY', 'Central African Republic': 'CF', 'Chad': 'TD', 'Chile': 'CL',
-  'China': 'CN', 'Colombia': 'CO', 'Costa Rica': 'CR', 'Croatia': 'HR', 'Cuba': 'CU',
+  'China': 'CN', 'Colombia': 'CO', 'Costa Rica': 'CR', 'Croatia': 'HR', 'Cuba': 'CU', 'Czech Republic': 'CZ',
   'Curaçao': 'CW', 'Cyprus': 'CY', 'Democratic Republic of the Congo': 'CD', 'Djibouti': 'DJ', 'Dominica': 'DM',
   'Dominican Republic': 'DO', 'Ecuador': 'EC', 'Egypt': 'EG', 'El Salvador': 'SV', 'Estonia': 'EE',
   'Eswatini': 'SZ', 'Ethiopia': 'ET', 'Fiji': 'FJ', 'Finland': 'FI', 'France': 'FR',
@@ -53,36 +53,36 @@ const countryCoords = {
   'AF': [33.9391, 67.7100], 'AL': [41.1533, 20.1683], 'DZ': [28.0339, 1.6596], 'AD': [42.5462, 1.6016],
   'AO': [-11.2027, 17.8739], 'AG': [17.0608, -61.7964], 'AR': [-38.4161, -63.6167], 'AM': [40.0691, 45.0382],
   'AU': [-25.2744, 133.7751], 'AT': [47.5162, 14.5501], 'AZ': [40.1431, 47.5769], 'BS': [25.0343, -77.3963],
-  'BH': [26.0667, 50.5577], 'BD': [23.6850, 90.3563], 'BB': [13.1939, -59.5432], 'BY': [53.7098, 27.9534],
-  'BZ': [17.1899, -88.4976], 'BJ': [9.3077, 2.3158], 'BT': [27.5142, 90.4336], 'BO': [-16.2902, -63.5887],
+  'BH': [26.0667, 50.5577], 'BD': [23.6850, 90.3563], 'BB': [13.1939, -59.5432], 'BE': [50.8503, 4.3517], 'BY': [53.7098, 27.9534],
+  'BZ': [17.1899, -88.4976], 'BJ': [9.3077, 2.3158], 'CA': [56.1304, -106.3468], 'BT': [27.5142, 90.4336], 'BO': [-16.2902, -63.5887],
   'BA': [44.0165, 17.6791], 'BW': [-22.3285, 24.6849], 'BR': [-14.2350, -51.9253], 'VG': [18.4207, -64.6400],
   'BN': [4.5353, 114.7277], 'BG': [42.7339, 25.4858], 'BF': [12.2383, -1.5616], 'BI': [-3.3731, 29.9189],
   'CV': [16.0022, -24.0132], 'KH': [12.5657, 104.9910], 'CM': [7.3697, 12.3547], 'KY': [19.5135, -80.5670],
-  'CF': [6.6111, 20.9394], 'TD': [15.4542, 18.7322], 'CL': [-35.6751, -71.5430], 'CN': [35.8617, 104.1954],
-  'CO': [4.5709, -74.2973], 'CR': [9.7489, -83.7534], 'HR': [45.1000, 15.2000], 'CU': [21.5218, -77.7812],
-  'CW': [12.1696, -68.9900], 'CY': [35.1264, 33.4299], 'CD': [-4.0383, 21.7587], 'DJ': [11.8251, 42.5903],
+  'CF': [6.6111, 20.9394], 'TD': [15.4542, 18.7322],   'CL': [-35.6751, -71.5430], 'CN': [35.8617, 104.1954], 'KI': [-3.3704, -168.7340], 'KM': [-11.8750, 43.8722],
+  'CO': [4.5709, -74.2973],   'CR': [9.7489, -83.7534], 'HR': [45.1000, 15.2000], 'CU': [21.5218, -77.7812], 'CZ': [49.8175, 15.4730],
+  'CW': [12.1696, -68.9900],   'CY': [35.1264, 33.4299], 'CD': [-4.0383, 21.7587], 'DJ': [11.8251, 42.5903], 'DK': [56.2639, 9.5018], 'DE': [51.1657, 10.4515],
   'DM': [15.4150, -61.3710], 'DO': [18.7357, -70.1627], 'EC': [-1.8312, -78.1834], 'EG': [26.8206, 30.8025],
-  'SV': [13.7942, -88.9015], 'EE': [58.5953, 25.0136], 'SZ': [-26.5228, 31.4659], 'ET': [9.1450, 40.4897],
+  'SV': [13.7942, -88.9015], 'EE': [58.5953, 25.0136], 'SZ': [-26.5228, 31.4659], 'ER': [15.1794, 39.7823], 'ET': [9.1450, 40.4897],
   'FJ': [-17.7134, 178.0650], 'FI': [61.9241, 25.7482], 'FR': [46.2276, 2.2137], 'GA': [-0.8037, 11.6094],
   'GM': [13.4432, -15.3101], 'GE': [42.3154, 43.3569], 'GH': [7.9465, -1.0232], 'GI': [36.1377, -5.3454],
-  'GR': [39.0742, 21.8243], 'GL': [71.7069, -42.6043], 'GD': [12.2628, -61.6041], 'GU': [13.4443, 144.7937],
+  'GR': [39.0742, 21.8243], 'GL': [71.7069, -42.6043], 'GD': [12.2628, -61.6041], 'GU': [13.4443, 144.7937], 'GQ': [1.6508, 10.2679],
   'GT': [15.7835, -90.2308], 'GN': [9.9456, -9.6966], 'GW': [11.8037, -15.1804], 'GY': [4.8604, -58.9302],
   'HT': [18.9712, -72.2852], 'HN': [15.1999, -86.2419], 'HU': [47.1625, 19.5033], 'IS': [64.9631, -19.0208],
   'IN': [20.5937, 78.9629], 'ID': [-0.7893, 113.9213], 'IR': [32.4279, 53.6880], 'IQ': [33.2232, 43.6793],
-  'IE': [53.1424, -7.6921], 'IL': [31.0461, 34.8516], 'IT': [41.8719, 12.5674], 'JM': [18.1096, -77.2975],
+  'IE': [53.1424, -7.6921], 'IL': [31.0461, 34.8516], 'IT': [41.8719, 12.5674], 'JM': [18.1096, -77.2975], 'JP': [36.2048, 138.2529],
   'JO': [30.5852, 36.2384], 'KZ': [48.0196, 66.9237], 'KE': [-0.0236, 37.9062], 'KW': [29.3117, 47.4818],
   'KG': [41.2044, 74.7661], 'LA': [19.8563, 102.4952], 'LV': [56.8796, 24.6032], 'LB': [33.8547, 35.8623],
   'LS': [-29.6099, 28.2336], 'LR': [6.4281, -9.4295], 'LY': [26.3351, 17.2283], 'LI': [47.1660, 9.5554],
   'LT': [55.1694, 23.8813], 'LU': [49.8153, 6.1296], 'MG': [-18.7669, 46.8691], 'MW': [-13.9626, 34.0035],
-  'MY': [4.2105, 101.9758], 'MV': [3.2028, 73.2207], 'ML': [17.5707, -3.9962], 'MT': [35.9375, 14.3754],
+  'MY': [4.2105, 101.9758], 'MV': [3.2028, 73.2207], 'MX': [23.6345, -102.5528], 'ML': [17.5707, -3.9962], 'MT': [35.9375, 14.3754],
   'MR': [21.0079, -10.9408], 'MU': [-20.3484, 57.5522], 'FM': [7.0897, 150.1838], 'MD': [47.4116, 28.3699],
   'MC': [43.7503, 7.4128], 'MN': [46.8625, 103.8467], 'ME': [42.7087, 19.2404], 'MA': [31.7917, -7.0926],
   'MZ': [-18.6657, 35.5295], 'MM': [21.9162, 95.9560], 'NA': [-22.9576, 18.4904], 'NR': [-0.5228, 166.9315],
-  'NP': [28.3949, 84.1240], 'NL': [52.1326, 5.2913], 'NZ': [-40.9006, 174.8860], 'NI': [12.1364, -85.2732],
+  'NP': [28.3949, 84.1240], 'NO': [60.4720, 8.4689], 'NL': [52.1326, 5.2913], 'NZ': [-40.9006, 174.8860], 'NI': [12.1364, -85.2732],
   'NE': [17.6078, 8.0817], 'NG': [9.0820, 8.6753], 'KP': [40.3399, 127.5101], 'MK': [41.6086, 21.7453],
   'OM': [21.4735, 55.9754], 'PK': [30.3753, 69.3451], 'PA': [8.5380, -80.7821], 'PG': [-6.3150, 143.9555],
   'PY': [-23.4425, -58.4438], 'PE': [-9.1900, -75.0152], 'PH': [12.8797, 121.7740], 'PL': [51.9194, 19.1451],
-  'PT': [39.3999, -8.2245], 'QA': [25.3548, 51.1839], 'RO': [45.9432, 24.9668], 'RU': [61.5240, 105.3188],
+  'PT': [39.3999, -8.2245], 'QA': [25.3548, 51.1839], 'PW': [7.5150, 134.5825], 'RO': [45.9432, 24.9668], 'RU': [61.5240, 105.3188],
   'RW': [-1.9403, 29.8739], 'KN': [17.3578, -62.7430], 'LC': [13.9094, -60.9748], 'VC': [12.9043, -61.2766],
   'WS': [-13.7590, -172.1046], 'SM': [43.9424, 12.4578], 'ST': [0.1864, 6.6131], 'SA': [23.8859, 45.0792],
   'SN': [14.4974, -14.4524], 'RS': [44.0165, 21.0059], 'SC': [-4.6796, 55.4920], 'SL': [8.4606, -11.7799],
@@ -366,7 +366,11 @@ function initMap() {
 
   map = L.map('map', {
     center: [20, 0],
-    zoom: 2
+    zoom: 2,
+    minZoom: 2,
+    maxBounds: [[-90, -180], [90, 180]],
+    maxBoundsViscosity: 1.0,
+    worldCopyJump: false
   });
 
   const theme = getCurrentTheme();
@@ -376,7 +380,7 @@ function initMap() {
   countryLayer = L.layerGroup().addTo(map);
 
   map.on('zoomend', () => {
-    if (map.getZoom() <= 3 && Object.keys(countryCounts).length > 0) {
+    if (Object.keys(countryCounts).length > 0) {
       displayCountryMarkers();
     }
   });
@@ -544,7 +548,7 @@ function search(query) {
 
     currentResults = results;
     displayResults(results);
-    updateMapForSearch(results);
+    updateMapForSearch(results, query);
 
     document.getElementById('loading').classList.remove('active');
   }, 50);
@@ -750,11 +754,25 @@ function displayResults(results) {
 
   resultsCount.textContent = `${results.length.toLocaleString()} results found`;
 
+  let html = '';
+
+  if (currentCountry && currentCountryCode.length === 2) {
+    const orgs = getUniqueOrganizations(currentCountryCode);
+    if (orgs.length > 0) {
+      html += `
+        <div class="org-section">
+          <div class="org-section-title">Other Organizations in ${currentCountry}</div>
+          <div class="org-list">
+            ${orgs.map(org => `<span class="org-tag" onclick="copyOrg('${org.replace(/'/g, "\\'")}')">${org}</span>`).join('')}
+          </div>
+        </div>
+      `;
+    }
+  }
+
   const startIndex = (currentPage - 1) * RESULTS_PER_PAGE;
   const endIndex = Math.min(startIndex + RESULTS_PER_PAGE, results.length);
   const pageResults = results.slice(startIndex, endIndex);
-
-  let html = '';
 
   pageResults.forEach(row => {
     html += `
@@ -788,55 +806,38 @@ function displayResults(results) {
 
   html += createPagination(results.length);
 
-  if (currentCountry && (currentCountryCode.length === 2)) {
-    const orgs = getUniqueOrganizations(currentCountryCode);
-    if (orgs.length > 0) {
-      html += `
-        <div class="org-section">
-          <div class="org-section-title">Other Organizations in ${currentCountry}</div>
-          <div class="org-list">
-            ${orgs.map(org => `<span class="org-tag" onclick="copyOrg('${org.replace(/'/g, "\\'")}')" title="Click to copy">${org}</span>`).join('')}
-          </div>
-        </div>
-      `;
-    }
-  }
-
   resultsList.innerHTML = html;
   document.getElementById('results').classList.add('active');
 }
 
 function getUniqueOrganizations(countryCode) {
-  const stmt = db.prepare('SELECT DISTINCT org FROM ip_to_asn WHERE country_code = ? AND org IS NOT NULL AND org != "" ORDER BY org ASC');
+  const stmt = db.prepare('SELECT DISTINCT org, asn FROM ip_to_asn WHERE country_code = ? AND org IS NOT NULL AND org != "" ORDER BY org ASC');
   stmt.bind([countryCode]);
 
   const orgs = [];
+  const orgAsns = {};
   while (stmt.step()) {
     const row = stmt.getAsObject();
     if (row.org && row.org.trim()) {
-      orgs.push(row.org.trim());
+      const orgName = row.org.trim();
+      if (!orgs.includes(orgName)) {
+        orgs.push(orgName);
+        orgAsns[orgName] = row.asn;
+      }
     }
   }
   stmt.free();
 
+  window.orgAsnMap = orgAsns;
   return orgs;
 }
 
 function copyOrg(org) {
-  navigator.clipboard.writeText(org).then(() => {
-    const tags = document.querySelectorAll('.org-tag');
-    tags.forEach(tag => {
-      if (tag.textContent === org) {
-        const originalText = tag.textContent;
-        tag.textContent = 'Copied!';
-        tag.style.background = '#22c55e';
-        setTimeout(() => {
-          tag.textContent = originalText;
-          tag.style.background = '';
-        }, 1500);
-      }
-    });
-  });
+  const asn = window.orgAsnMap?.[org];
+  if (asn) {
+    const asnQuery = asn.startsWith('AS') ? asn : `AS${asn}`;
+    search(asnQuery);
+  }
 }
 
 function createPagination(totalResults) {
@@ -870,39 +871,54 @@ function changePage(page) {
   document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
 }
 
-function updateMapForSearch(results) {
+function updateMapForSearch(results, searchQuery) {
   countryLayer.clearLayers();
 
-  const resultCountries = {};
+  const searchCountryCode = Object.entries(countryCodeMap).find(([name, code]) => 
+    name.toLowerCase() === String(searchQuery).toLowerCase().trim() || code.toLowerCase() === String(searchQuery).toLowerCase().trim()
+  )?.[1];
 
-  results.forEach(row => {
-    if (row.country_code) {
-      resultCountries[row.country_code] = (resultCountries[row.country_code] || 0) + 1;
-    }
-  });
+  const threshold = 15;
+  let bounds = null;
 
-  Object.entries(resultCountries).forEach(([code, count]) => {
+  if (searchCountryCode && countryCoords[searchCountryCode]) {
+    bounds = L.latLngBounds([countryCoords[searchCountryCode]]);
+  }
+
+  const theme = getCurrentTheme();
+  const colors = getThemeColors(theme);
+
+  Object.entries(countryCounts).forEach(([code, count]) => {
     if (countryCoords[code]) {
-      const theme = getCurrentTheme();
-      const colors = getThemeColors(theme);
+      const isSearched = code === searchCountryCode;
       const color = count > 0 ? colors.success : colors.default;
-      const radius = Math.max(5, Math.min(20, Math.log(count) * 3));
+      const radius = Math.max(3, Math.min(8, Math.log(count) * 1.5));
 
       const circle = L.circleMarker(countryCoords[code], {
-        radius: radius,
+        radius: isSearched ? radius * 1.5 : radius,
         fillColor: color,
         color: color,
-        weight: 1,
+        weight: isSearched ? 3 : 1,
         opacity: 0.8,
-        fillOpacity: 0.6
+        fillOpacity: isSearched ? 0.8 : 0.5
       });
 
       const countryName = Object.entries(countryCodeMap).find(([name, c]) => c === code)?.[0] || code;
 
+      const tooltipOptions = {
+        className: 'country-tooltip',
+        permanent: isSearched,
+        direction: 'top'
+      };
+
       circle.bindTooltip(
-        `<div class="country-tooltip">${countryName} (${code})<br>${count} results</div>`,
-        { className: 'country-tooltip' }
+        `<div class="country-tooltip">${countryName} (${code})<br>${count.toLocaleString()} results</div>`,
+        tooltipOptions
       );
+
+      if (isSearched) {
+        circle.openTooltip();
+      }
 
       circle.on('click', () => {
         setQuery(countryName);
@@ -913,13 +929,28 @@ function updateMapForSearch(results) {
     }
   });
 
-  if (Object.keys(resultCountries).length > 0) {
-    const bounds = Object.entries(resultCountries)
-      .filter(([code]) => countryCoords[code])
-      .map(([code]) => countryCoords[code]);
+  if (searchCountryCode && countryCoords[searchCountryCode]) {
+    const clickedLat = countryCoords[searchCountryCode][0];
+    const clickedLng = countryCoords[searchCountryCode][1];
 
-    if (bounds.length > 0) {
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 5 });
+    Object.entries(countryCounts).forEach(([code, count]) => {
+      if (code !== searchCountryCode && countryCoords[code]) {
+        const otherLat = countryCoords[code][0];
+        const otherLng = countryCoords[code][1];
+
+        const latDiff = Math.abs(clickedLat - otherLat);
+        const lngDiff = Math.abs(clickedLng - otherLng);
+
+        if (latDiff < threshold && lngDiff < threshold) {
+          if (bounds) {
+            bounds.extend([otherLat, otherLng]);
+          }
+        }
+      }
+    });
+
+    if (bounds && bounds.isValid()) {
+      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 7 });
     }
   }
 }
