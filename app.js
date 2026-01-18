@@ -756,23 +756,6 @@ function displayResults(results) {
 
   let html = '';
 
-  if (currentCountry && currentCountryCode.length === 2) {
-    const orgs = getUniqueOrganizations(currentCountryCode);
-    if (orgs.length > 0) {
-      html += `
-        <div class="org-section">
-          <div class="org-section-title">Other Organizations in ${currentCountry}</div>
-          <div class="org-list">
-            ${orgs.map(org => {
-              const escapedOrg = org.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-              return `<span class="org-tag" onclick="copyOrg('${escapedOrg}')">${org}</span>`;
-            }).join('')}
-          </div>
-        </div>
-      `;
-    }
-  }
-
   const startIndex = (currentPage - 1) * RESULTS_PER_PAGE;
   const endIndex = Math.min(startIndex + RESULTS_PER_PAGE, results.length);
   const pageResults = results.slice(startIndex, endIndex);
@@ -812,6 +795,23 @@ function displayResults(results) {
   });
 
   html += createPagination(results.length);
+
+  if (currentCountry && currentCountryCode.length === 2) {
+    const orgs = getUniqueOrganizations(currentCountryCode);
+    if (orgs.length > 0) {
+      html += `
+        <div class="org-section">
+          <div class="org-section-title">Other Organizations in ${currentCountry}</div>
+          <div class="org-list">
+            ${orgs.map(org => {
+              const escapedOrg = org.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+              return `<span class="org-tag" onclick="copyOrg('${escapedOrg}')">${org}</span>`;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+  }
 
   resultsList.innerHTML = html;
   document.getElementById('results').classList.add('active');
