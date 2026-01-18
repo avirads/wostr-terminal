@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head><title>Check DB</title></head>
+<body>
+<script src="sql-wasm.js"></script>
+<script>
+async function check() {
+  const SQL = await initSqlJs({ locateFile: f => f });
+  const db = new SQL.Database(new Uint8Array(await fetch('ip-to-asn.db').then(r => r.arrayBuffer())));
+  
+  const tables = db.exec("SELECT name FROM sqlite_master WHERE type='table'");
+  console.log('Tables:', tables[0]?.values?.map(r => r[0]) || 'none');
+  
+  const info = db.exec("SELECT sql FROM sqlite_master WHERE type='table'");
+  console.log('Schema:', info[0]?.values?.map(r => r[0]) || 'none');
+}
+check();
+</script>
+</body>
+</html>

@@ -4,15 +4,7 @@ const ASSETS = [
   './index.html',
   './app.js',
   './sql-wasm.wasm',
-  './sql-wasm.js',
-  './libarchive/libarchive.js',
-  './libarchive/worker-bundle.js',
-  './libarchive/libarchive.wasm',
-  './ip-to-asn-20260116.7z',
-  './manifest.json',
-  './leaflet.js',
-  './leaflet.css',
-  './favicon.png'
+  './manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
@@ -40,7 +32,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  if (url.pathname.endsWith('.7z') || url.pathname.endsWith('.db')) {
+  if (url.pathname.endsWith('.db')) {
     event.respondWith(
       caches.open(CACHE_NAME).then((cache) => {
         return cache.match(event.request).then((cached) => {
