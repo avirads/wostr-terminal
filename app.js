@@ -172,8 +172,25 @@ async function initDatabase() {
         throw new Error('Archive library failed to load. Please check your internet connection and refresh the page.');
       }
       
+      document.getElementById('initStatusText').textContent = 'Preparing archive engine...';
+      
+      const workerCode = `
+        // Override locateFile to use absolute path
+        self.locateFile = function(path) {
+          if (path === 'libarchive.wasm') {
+            return self.location.origin + self.location.pathname.replace(/\\/[^\\/]*$/, '/') + 'libarchive/libarchive.wasm';
+          }
+          return path;
+        };
+      `;
+      
+      const originalWorkerUrl = 'libarchive/worker-bundle.js';
+      const workerBlob = new Blob([workerCode + '\\nimportScripts("' + originalWorkerUrl + '");'], { type: 'application/javascript' });
+      const workerBlobUrl = URL.createObjectURL(workerBlob);
+      
       Archive.init({
-        workerUrl: 'libarchive/worker-bundle.js'
+        workerUrl: originalWorkerUrl,
+        getWorker: () => new Worker(workerBlobUrl)
       });
       const archive = await Archive.open(blob);
       console.log('Archive opened:', archive);
