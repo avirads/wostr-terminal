@@ -527,7 +527,6 @@ function search(query) {
 
   document.getElementById('loading').classList.add('active');
   document.getElementById('results').classList.remove('active');
-  document.getElementById('status').innerHTML = '';
 
   setTimeout(() => {
     const searchType = detectSearchType(query);
