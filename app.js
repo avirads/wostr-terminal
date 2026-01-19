@@ -174,18 +174,9 @@ async function initDatabase() {
       
       document.getElementById('initStatusText').textContent = 'Preparing archive engine...';
       
-      const workerCode = `
-        // Override locateFile to use absolute path
-        self.locateFile = function(path) {
-          if (path === 'libarchive.wasm') {
-            return self.location.origin + self.location.pathname.replace(/\\/[^\\/]*$/, '/') + 'libarchive/libarchive.wasm';
-          }
-          return path;
-        };
-      `;
-      
+      const locateFileOverride = 'self.locateFile=function(e){return"libarchive.wasm"===e?self.location.origin+self.location.pathname.replace(/\\/[^\\/]*$/,"/")+"libarchive/libarchive.wasm":e};';
       const originalWorkerUrl = 'libarchive/worker-bundle.js';
-      const workerBlob = new Blob([workerCode + '\\nimportScripts("' + originalWorkerUrl + '");'], { type: 'application/javascript' });
+      const workerBlob = new Blob([locateFileOverride + 'importScripts("' + originalWorkerUrl + '");'], { type: 'application/javascript' });
       const workerBlobUrl = URL.createObjectURL(workerBlob);
       
       Archive.init({
