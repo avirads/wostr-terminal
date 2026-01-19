@@ -1863,6 +1863,9 @@
   <script src="sql-wasm.js"></script>
   <script src="jszip.min.js"></script>
   <script src="leaflet.js"></script>
-  <script src="app.js"></script>
+  <script>console.log('Before libarchive.js - Archive:', typeof Archive);</script>
+  <script src="libarchive/libarchive.js?v=2" onerror="console.error('Failed to load libarchive.js')"></script>
+  <script>console.log('After libarchive.js - Archive:', typeof Archive, window.Archive);</script>
+  <script src="app.js?v=2"></script>
 </body>
 </html>

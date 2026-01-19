@@ -166,6 +166,11 @@ async function initDatabase() {
       console.log('Blob received:', blob.size, 'bytes');
 
       statusEl.querySelector('#initStatus').textContent = 'Analyzing compressed archive...';
+      
+      if (typeof Archive === 'undefined') {
+        throw new Error('Archive library failed to load. Please check your internet connection and refresh the page.');
+      }
+      
       Archive.init({
         workerUrl: 'libarchive/worker-bundle.js'
       });

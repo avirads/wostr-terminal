@@ -179,3 +179,25 @@ Unified file naming convention across all scanning tools:
 - Network CIDRs have slashes replaced with hyphens (e.g., `192.168.1.0-24`)
 - Timestamps formatted as `yyyymmddhhmmss` (e.g., `20260118123045`)
 - Consistent naming ensures easy file management and identification
+
+### 34. libarchive.js ES6 Module to Regular Script Conversion
+Fixed "Failed to load database: Can't find variable Archive" error that occurred on Mac Safari and Windows incognito mode:
+
+**Root Cause:**
+- `libarchive.js` was written as an ES6 module using `export` and `import.meta.url`
+- The library was never loaded in `index.html` - it was only referenced by path
+- When loaded as a regular script (not a module), the `export` statement caused a SyntaxError
+- The `import.meta.url` reference also failed in non-module context
+
+**Solution:**
+1. Removed the ES6 `export` statement from `libarchive/libarchive.js`
+2. Added global window assignment: `window.Archive = O; window.ArchiveCompression = k; window.ArchiveFormat = _;`
+3. Added `<script src="libarchive/libarchive.js">` to `index.html`
+4. Fixed `import.meta.url` issue by replacing with simple string fallback: `'./worker-bundle.js'`
+5. Added cache-busting query strings (`?v=2`) to force browser reload
+6. Added proper error handling in `app.js` for missing Archive library
+
+**Files Modified:**
+- `libarchive/libarchive.js` - Removed export, added window global, fixed import.meta
+- `index.html` - Added libarchive.js script tag with cache-busting
+- `app.js` - Added Archive availability check with helpful error message
