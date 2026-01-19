@@ -141,23 +141,24 @@ async function cacheDB(buffer) {
 
 async function initDatabase() {
   showApp();
+  const initStatusEl = document.getElementById('initStatus');
+  initStatusEl.innerHTML = '<div class="spinner"></div><p id="initStatusText">Initializing SQL Engine...</p>';
+  initStatusEl.classList.add('active');
+  
   try {
-    const statusEl = document.getElementById('status');
-    statusEl.innerHTML = '<div class="loading active"><div class="spinner"></div><p id="initStatus">Initializing SQL Engine...</p></div>';
-
     const SQL = await initSqlJs({
       locateFile: file => file
     });
 
-    statusEl.querySelector('#initStatus').textContent = 'Checking local cache...';
+    document.getElementById('initStatusText').textContent = 'Checking local cache...';
     const cachedBuffer = await loadCachedDB();
 
     if (cachedBuffer) {
-      statusEl.querySelector('#initStatus').textContent = 'Loading from cache...';
+      document.getElementById('initStatusText').textContent = 'Loading from cache...';
       db = new SQL.Database(cachedBuffer);
     } else {
       console.log('No cache found. Starting download...');
-      statusEl.querySelector('#initStatus').textContent = 'Downloading database (compressed)...';
+      document.getElementById('initStatusText').textContent = 'Downloading database (compressed)...';
       const response = await fetch('ip-to-asn-20260116.7z', {
         cache: 'no-store'
       });
@@ -165,7 +166,7 @@ async function initDatabase() {
       const blob = await response.blob();
       console.log('Blob received:', blob.size, 'bytes');
 
-      statusEl.querySelector('#initStatus').textContent = 'Analyzing compressed archive...';
+      document.getElementById('initStatusText').textContent = 'Analyzing compressed archive...';
       
       if (typeof Archive === 'undefined') {
         throw new Error('Archive library failed to load. Please check your internet connection and refresh the page.');
@@ -177,7 +178,7 @@ async function initDatabase() {
       const archive = await Archive.open(blob);
       console.log('Archive opened:', archive);
 
-      statusEl.querySelector('#initStatus').textContent = 'Listing files in archive...';
+      document.getElementById('initStatusText').textContent = 'Listing files in archive...';
 
       let filesList = [];
       try {
@@ -192,7 +193,7 @@ async function initDatabase() {
 
       // Just take the first file found in the archive
       const dbEntry = filesList[0];
-      statusEl.querySelector('#initStatus').textContent = 'Extracting database...';
+      document.getElementById('initStatusText').textContent = 'Extracting database...';
       console.log('Extracting:', dbEntry.path || 'primary file');
       const dbFile = await dbEntry.file.extract();
       const dbBuffer = await dbFile.arrayBuffer();
@@ -204,11 +205,11 @@ async function initDatabase() {
       console.log('File header detected:', magic);
 
       if (magic === 'SQLite format 3') {
-        statusEl.querySelector('#initStatus').textContent = 'Finalizing...';
+        document.getElementById('initStatusText').textContent = 'Finalizing...';
         db = new SQL.Database(buffer);
       } else {
         // It's a CSV file
-        statusEl.querySelector('#initStatus').textContent = 'Converting CSV to Database...';
+        document.getElementById('initStatusText').textContent = 'Converting CSV to Database...';
         const csvContent = new TextDecoder().decode(buffer);
         const lines = csvContent.split('\n');
 
@@ -281,7 +282,7 @@ async function initDatabase() {
 
           if (i % 50000 === 0) {
             const percent = Math.round((i / totalLines) * 100);
-            statusEl.querySelector('#initStatus').textContent = `Converting CSV: ${percent}%...`;
+            document.getElementById('initStatusText').textContent = `Converting CSV: ${percent}%...`;
           }
         }
 
@@ -290,23 +291,24 @@ async function initDatabase() {
         console.log(`Imported ${importedCount} rows successfully.`);
 
         // Add index for performance
-        statusEl.querySelector('#initStatus').textContent = 'Optimizing database...';
+        document.getElementById('initStatusText').textContent = 'Optimizing database...';
         db.run("CREATE INDEX idx_country ON ip_to_asn(country_code)");
         console.log('Database conversion complete.');
       }
 
       // Cache the resulting database buffer for next time
-      statusEl.querySelector('#initStatus').textContent = 'Caching database...';
+      document.getElementById('initStatusText').textContent = 'Caching database...';
       const finalBuffer = db.export();
       await cacheDB(finalBuffer);
     }
 
     document.getElementById('searchBtn').disabled = false;
-    statusEl.innerHTML = '';
+    initStatusEl.innerHTML = '';
+    initStatusEl.classList.remove('active');
     setTimeout(initMap, 50);
   } catch (error) {
     console.error('Failed to load database:', error);
-    document.getElementById('status').innerHTML = `<p>Failed to load database: ${error.message}. Please refresh the page.</p>`;
+    initStatusEl.innerHTML = `<p>Failed to load database: ${error.message}. Please refresh the page.</p>`;
   }
 }
 
