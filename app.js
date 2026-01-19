@@ -174,13 +174,45 @@ async function initDatabase() {
       
       document.getElementById('initStatusText').textContent = 'Preparing archive engine...';
       
-      const locateFileOverride = 'self.locateFile=function(e){return"libarchive.wasm"===e?self.location.origin+self.location.pathname.replace(/\\/[^\\/]*$/,"/")+"libarchive/libarchive.wasm":e};';
-      const originalWorkerUrl = 'libarchive/worker-bundle.js';
-      const workerBlob = new Blob([locateFileOverride + 'importScripts("' + originalWorkerUrl + '");'], { type: 'application/javascript' });
+      const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
+      const wasmFullUrl = baseUrl + 'libarchive/libarchive.wasm';
+      
+      let workerCode;
+      try {
+        const response = await fetch('libarchive/worker-bundle.js');
+        if (!response.ok) throw new Error('Failed to load worker: ' + response.status);
+        workerCode = await response.text();
+        
+        console.log('Worker code length:', workerCode.length);
+        
+        // Transform import.meta.url to fixed URL for non-module workers
+        workerCode = workerCode.replace(/import\.meta\.url/g, '"' + baseUrl + 'libarchive/worker-bundle.js"');
+        
+        // Replace WASM path patterns with absolute URL
+        workerCode = workerCode.replace(/n\.locateFile\("libarchive\.wasm"\)/g, 'n.locateFile("' + wasmFullUrl + '")');
+        workerCode = workerCode.replace(/="libarchive\.wasm"/g, '="' + wasmFullUrl + '"');
+        
+        console.log('Worker code after transform:', workerCode.length, 'chars');
+        console.log('WASM URL set to:', wasmFullUrl);
+        
+        // Verify the code is valid JavaScript
+        try {
+          new Function(workerCode);
+          console.log('Worker code is valid JavaScript');
+        } catch (syntaxError) {
+          console.error('Worker code has syntax error:', syntaxError.message);
+          throw syntaxError;
+        }
+      } catch (e) {
+        console.error('Failed to fetch worker:', e);
+        throw new Error('Failed to load archive worker. Please refresh the page.');
+      }
+      
+      const workerBlob = new Blob([workerCode], { type: 'application/javascript' });
       const workerBlobUrl = URL.createObjectURL(workerBlob);
       
       Archive.init({
-        workerUrl: originalWorkerUrl,
+        workerUrl: 'libarchive/worker-bundle.js',
         getWorker: () => new Worker(workerBlobUrl)
       });
       const archive = await Archive.open(blob);
