@@ -201,3 +201,20 @@ Fixed "Failed to load database: Can't find variable Archive" error that occurred
 - `libarchive/libarchive.js` - Removed export, added window global, fixed import.meta
 - `index.html` - Added libarchive.js script tag with cache-busting
 - `app.js` - Added Archive availability check with helpful error message
+
+### 35. WASM Path Fix for Incognito Mode
+Fixed "Failed to load database: The requested file could not be read" error in Android Chrome incognito mode:
+
+**Root Cause:**
+- Web Workers in incognito mode have restricted file access
+- The worker was using relative paths to load libarchive.wasm, which failed due to path resolution issues
+- The error "expected magic word 00 61 73 6d, found 3c 21 44 4f" indicated the worker was receiving HTML error pages instead of the WASM binary
+
+**Solution:**
+1. Modified app.js to wrap the worker with a custom `locateFile` function
+2. The wrapper sets `self.locateFile` before loading the original worker script
+3. Uses absolute path for WASM file: `self.location.origin + self.location.pathname + 'libarchive/libarchive.wasm'`
+4. Creates a Blob URL for the wrapper to ensure consistent behavior
+
+**Files Modified:**
+- `app.js` - Added worker wrapper with absolute WASM path override
